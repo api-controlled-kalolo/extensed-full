@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt \
- && pip install --no-cache-dir gunicorn
+ && pip install --no-cache-dir gunicorn playwright==1.46.0
 
 COPY . .
 
