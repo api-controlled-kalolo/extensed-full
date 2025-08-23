@@ -14,4 +14,4 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY . .
 
 # Importante: usa el módulo WSGI real de tu proyecto (parece ser main.wsgi)
-CMD ["sh","-c","gunicorn main.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-1} --threads ${WEB_THREADS:-1} --timeout ${WEB_TIMEOUT:-120}"]
+CMD ["sh","-c","python manage.py collectstatic && gunicorn main.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-1} --threads ${WEB_THREADS:-1} --timeout ${WEB_TIMEOUT:-120}"]
