@@ -1,0 +1,17 @@
+<h1>Signin</h1>
+
+{% if error %}
+
+<p> {{ error }} </p>
+
+{% endif %}
+
+<form method="POST">
+    {% csrf_token %}
+
+    {{ form.as_p }}
+
+    <button>Ingresar</button>
+
+</form>
+

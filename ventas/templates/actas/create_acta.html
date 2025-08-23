@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Acta de Servicio Técnico</title>
+</head>
+<body>
+    <h1>Generar Acta de Servicio Técnico</h1>
+
+    {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
+    {% if success %}<div class="alert alert-success">{{ success }}</div>{% endif %}
+
+    <form method="POST" novalidate>
+        {% csrf_token %}
+
+        <!-- ================================================
+             I. INFORMACIÓN DE LA ORDEN
+        ================================================= -->
+        <fieldset class="card">
+            <legend>I. Información de la Orden</legend>
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>Fecha del Acta:</label>
+                    {{ form.fecha_acta }}
+                </div>
+                <div class="field-group">
+                    <label>Hora Inicio:</label>
+                    {{ form.hora_inicio }}
+                </div>
+                <div class="field-group">
+                    <label>Hora Fin:</label>
+                    {{ form.hora_fin }}
+                </div>
+            </div>
+            
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>SOT:</label>
+                    {{ form.sot }}
+                </div>
+                <div class="field-group">
+                    <label>Número Cintillo:</label>
+                    {{ form.numero_cintillo }}
+                </div>
+                <div class="field-group">
+                    <label>Plano:</label>
+                    {{ form.plano }}
+                </div>
+            </div>
+
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>Validación:</label>
+                    {{ form.validacion }}
+                </div>
+                <div class="field-group">
+                    <label>FAT:</label>
+                    {{ form.fat }}
+                </div>
+                <div class="field-group">
+                    <label>Número Borne FAT:</label>
+                    {{ form.numero_borne_fat }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================================================
+             II. INFORMACIÓN DEL CLIENTE
+        ================================================= -->
+        <fieldset class="card">
+            <legend>II. Información del Cliente</legend>
+            <div class="grid-two">
+                <div class="field-group">
+                    <label>Razón Social:</label>
+                    {{ form.razon_social }}
+                </div>
+                <div class="field-group">
+                    <label>Código Cliente:</label>
+                    {{ form.cod_cliente }}
+                </div>
+            </div>
+
+            <div class="field-group full-width">
+                <label>Dirección:</label>
+                {{ form.direccion }}
+            </div>
+
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>Teléfono:</label>
+                    {{ form.telefono }}
+                </div>
+                <div class="field-group">
+                    <label>Provincia:</label>
+                    {{ form.provincia }}
+                </div>
+                <div class="field-group">
+                    <label>Distrito:</label>
+                    {{ form.distrito }}
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <h4>Tipo de Persona:</h4>
+                <div class="checkbox-row">
+                    <label class="checkbox-label">{{ form.titular }} Titular</label>
+                    <label class="checkbox-label">{{ form.otros }} Otros</label>
+                    <label class="checkbox-label">{{ form.usuario }} Usuario</label>
+                </div>
+                <div class="field-group">
+                    <label>Relación con Titular:</label>
+                    {{ form.relacion_titular }}
+                </div>
+            </div>
+
+            <div class="checkbox-group">
+                <h4>Atención al Cliente:</h4>
+                <div class="checkbox-row">
+                    <label class="checkbox-label">{{ form.cliente_buena_brinda }} Cliente Buena</label>
+                    <label class="checkbox-label">{{ form.cliente_mala_brinda }} Cliente Mala</label>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================================================
+             III. SERVICIO TÉCNICO
+        ================================================= -->
+        
+        <!-- III.1 Personal Técnico -->
+        <fieldset class="card">
+            <legend>III.1 Personal Técnico</legend>
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>T1 Líder:</label>
+                    {{ form.t1_lider }}
+                </div>
+                <div class="field-group">
+                    <label>T2 Apoyo:</label>
+                    {{ form.t2_apoyo }}
+                </div>
+                <div class="field-group">
+                    <label>Técnico Adicional:</label>
+                    {{ form.t_adicional }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- III.2 Equipos instalados/retirados -->
+        <fieldset class="card">
+            <legend>III.2 Equipos instalados (I) / retirados (R)</legend>
+            {{ equipos.management_form }}
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>I</th>
+                            <th>R</th>
+                            <th>Descripción</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Serie</th>
+                            <th>MAC/PON</th>
+                            <th>UA</th>
+                            <th>Datos TV</th>
+                            {% if equipos.can_delete %}<th>Eliminar</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for e in equipos %}
+                        <tr>
+                            <td>{{ e.label_i }}</td>
+                            <td>{{ e.label_r }}</td>
+                            <td>{{ e.desc }}</td>
+                            <td>{{ e.marca }}</td>
+                            <td>{{ e.modelo }}</td>
+                            <td>{{ e.serie }}</td>
+                            <td>{{ e.mac_pon }}</td>
+                            <td>{{ e.ua }}</td>
+                            <td>{{ e.datos_tv }}</td>
+                            {% if equipos.can_delete %}
+                                <td>{{ e.DELETE }}</td>
+                            {% endif %}
+                            {% for hidden in e.hidden_fields %}{{ hidden }}{% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </fieldset>
+
+        <!-- III.3 Plataforma -->
+        <fieldset class="card">
+            <legend>III.3 Plataforma (Aplica para residencias y Claro empresas)</legend>
+            <div class="checkbox-group">
+                <div class="checkbox-row">
+                    <label class="checkbox-label">{{ form.HFC }} HFC</label>
+                    <label class="checkbox-label">{{ form.FTTH }} FTTH</label>
+                    <label class="checkbox-label">{{ form.LTE }} LTE</label>
+                    <label class="checkbox-label">{{ form.DTH }} DTH</label>
+                    <label class="checkbox-label">{{ form.Otro }} Otro</label>
+                </div>
+                <div class="grid-two">
+                    <div class="field-group">
+                        <label>Especificar Otro:</label>
+                        {{ form.Otro_text }}
+                    </div>
+                    <div class="field-group">
+                        <label>Plan:</label>
+                        {{ form.Plan }}
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- III.4 Servicio Realizado -->
+        <fieldset class="card">
+            <legend>III.4 Servicio Realizado</legend>
+            <div class="checkbox-group">
+                <div class="checkbox-column">
+                    <label class="checkbox-label">{{ form.instalacion }} Instalación</label>
+                    <label class="checkbox-label">{{ form.post_venta }} Post Venta</label>
+                    <label class="checkbox-label">{{ form.mantenimiento_atencionReclamo_Calidad }} Mantenimiento/Atención Reclamo/Calidad</label>
+                    <label class="checkbox-label">{{ form.retiro }} Retiro</label>
+                    <label class="checkbox-label">{{ form.retiro_acometida }} Retiro Acometida</label>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- III.5 Materiales Empleados 1 -->
+        <fieldset class="card">
+            <legend>III.5 Materiales Empleados (Parte 1)</legend>
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>Coaxial c/mens RG6:</label>
+                    {{ form.Coaxial_c_mens_RG6 }}
+                </div>
+                <div class="field-group">
+                    <label>Coaxial s/mens RG6:</label>
+                    {{ form.Coaxial_s_mens_RG6 }}
+                </div>
+                <div class="field-group">
+                    <label>Cable Telefónico:</label>
+                    {{ form.cable_telefonico }}
+                </div>
+                <div class="field-group">
+                    <label>Cable UTP:</label>
+                    {{ form.cable_utp }}
+                </div>
+                <div class="field-group">
+                    <label>Cable SC/APC:</label>
+                    {{ form.cable_sc_APC }}
+                </div>
+                <div class="field-group">
+                    <label>Conector RJ11:</label>
+                    {{ form.conector_rj11 }}
+                </div>
+                <div class="field-group">
+                    <label>Conector RJ45:</label>
+                    {{ form.conector_rj45 }}
+                </div>
+                <div class="field-group">
+                    <label>Conector RG6:</label>
+                    {{ form.conector_rg6 }}
+                </div>
+                <div class="field-group">
+                    <label>Conector Óptico:</label>
+                    {{ form.conector_opt }}
+                </div>
+                <div class="field-group">
+                    <label>Anclaje P:</label>
+                    {{ form.anclaje_p }}
+                </div>
+                <div class="field-group">
+                    <label>Control Remoto:</label>
+                    {{ form.control_remoto }}
+                </div>
+                <div class="field-group">
+                    <label>Cable HDMI:</label>
+                    {{ form.cable_hdmi }}
+                </div>
+                <div class="field-group">
+                    <label>Roseta Teléf:</label>
+                    {{ form.roseta_telef }}
+                </div>
+                <div class="field-group">
+                    <label>Roseta Óptica:</label>
+                    {{ form.roseta_optica }}
+                </div>
+                <div class="field-group">
+                    <label>Chapa Q:</label>
+                    {{ form.chapa_q }}
+                </div>
+            </div>
+            
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>Cable Fibra Drop:</label>
+                    {{ form.cable_fibra_drop }}
+                </div>
+                <div class="field-group">
+                    <label>Divisor:</label>
+                    {{ form.divisor }}
+                </div>
+                <div class="field-group">
+                    <label>Otros Materiales:</label>
+                    {{ form.otros_material }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- III.6 Materiales Empleados 2 -->
+        <fieldset class="card">
+            <legend>III.6 Materiales Empleados (Parte 2)</legend>
+            <div class="grid-three">
+                <div class="field-group">
+                    <label>Grapas Pared:</label>
+                    {{ form.grapas_pared }}
+                </div>
+                <div class="field-group">
+                    <label>Cinta Aislante:</label>
+                    {{ form.cinta_aislante }}
+                </div>
+                <div class="field-group">
+                    <label>Cinta Doble Contacto:</label>
+                    {{ form.cinta_doble_contacto }}
+                </div>
+                <div class="field-group">
+                    <label>Alcohol Isopropílico:</label>
+                    {{ form.alcohol_isopropilico }}
+                </div>
+                <div class="field-group">
+                    <label>Paños Secos:</label>
+                    {{ form.panos_secos }}
+                </div>
+                <div class="field-group">
+                    <label>Otros Materiales 2:</label>
+                    {{ form.otros_material2 }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================================================
+             IV. INFORMACIÓN TÉCNICA
+        ================================================= -->
+        
+        <!-- IV.1 Niveles -->
+        <fieldset class="card">
+            <legend>IV.1 Niveles</legend>
+            <div class="grid-two">
+                <div class="field-group">
+                    <label>Down Stream RX ONT:</label>
+                    {{ form.down_stream_rx_ont }}
+                </div>
+                <div class="field-group">
+                    <label>Up Stream TX ONT:</label>
+                    {{ form.up_stream_tx_ont }}
+                </div>
+                <div class="field-group">
+                    <label>SINR:</label>
+                    {{ form.sinr }}
+                </div>
+                <div class="field-group">
+                    <label>RSRP:</label>
+                    {{ form.rsrp }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- IV.2 SVA -->
+        <fieldset class="card">
+            <legend>IV.2 SVA</legend>
+            <div class="checkbox-group">
+                <div class="checkbox-row">
+                    <label class="checkbox-label">{{ form.hunting }} Hunting</label>
+                    <label class="checkbox-label">{{ form.ip_fija }} IP Fija</label>
+                    <label class="checkbox-label">{{ form.central_virtual }} Central Virtual</label>
+                    <label class="checkbox-label">{{ form.post_forwarding }} Post Forwarding</label>
+                </div>
+                <div class="field-group">
+                    <label>IP Text:</label>
+                    {{ form.ip_text }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- IV.3 WiFi -->
+        <fieldset class="card">
+            <legend>IV.3 WiFi</legend>
+            <div class="grid-two">
+                <div class="field-group">
+                    <label>SSID 2.4 GHz:</label>
+                    {{ form.SSID_2_4_GHZ }}
+                </div>
+                <div class="field-group">
+                    <label>SSID 5 GHz:</label>
+                    {{ form.SSID_5_GHZ }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================================================
+             V. MANTENIMIENTO / RECLAMO POR CALIDAD
+        ================================================= -->
+        
+        <!-- V.1 Inconveniente -->
+        <fieldset class="card">
+            <legend>V.1 Inconveniente (Solo en caso de Mantenimiento/Reclamo por Calidad)</legend>
+            <div class="field-group full-width">
+                <label>Descripción del Inconveniente:</label>
+                {{ form.incoveniente_texto }}
+            </div>
+        </fieldset>
+
+        <!-- Acciones Realizadas -->
+        <fieldset class="card">
+            <legend>V.2 Acciones Realizadas</legend>
+            {{ acciones.management_form }}
+            <div class="table-wrapper">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Acción</th>
+                            {% if acciones.can_delete %}<th>Eliminar</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for a in acciones %}
+                        <tr>
+                            <td>{{ a.codigo }}</td>
+                            <td>{{ a.acciones_text }}</td>
+                            {% if acciones.can_delete %}
+                                <td>{{ a.DELETE }}</td>
+                            {% endif %}
+                            {% for hidden in a.hidden_fields %}{{ hidden }}{% endfor %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </fieldset>
+
+        <!-- V.3 Factibilidad de Solución -->
+        <fieldset class="card">
+            <legend>V.3 Factibilidad de Solución</legend>
+            <div class="grid-two">
+                <div class="field-group">
+                    <label>Inconveniente Solucionado:</label>
+                    {{ form.incoveniente_solucionado }}
+                </div>
+                <div class="field-group full-width">
+                    <label>Indicar por qué:</label>
+                    {{ form.indicar_porque }}
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- ================================================
+             VI. COMENTARIOS Y OBSERVACIONES
+        ================================================= -->
+        <fieldset class="card">
+            <legend>VI. Comentarios y Observaciones del Servicio</legend>
+            <div class="field-group full-width">
+                <label>Comentarios del Técnico:</label>
+                {{ form.comentarios_texto }}
+            </div>
+        </fieldset>
+
+        <!-- ================================================
+             VII. CONFORMIDAD DEL SERVICIO Y FIRMAS
+        ================================================= -->
+        <fieldset class="card">
+            <legend>VII. Conformidad del Servicio</legend>
+
+            <!-- Datos de Firmas -->
+            <div class="grid-two">
+                <div class="field-group">
+                    <label>Nombre Cliente:</label>
+                    {{ form.nombre_cliente }}
+                </div>
+                <div class="field-group">
+                    <label>DNI Cliente:</label>
+                    {{ form.dni_cliente }}
+                </div>
+            </div>
+
+            <!-- Negativa del Cliente -->
+            <div class="checkbox-group">
+                <label class="checkbox-label">{{ form.el_cliente_nego_acta }} El Cliente negó el Acta</label>
+                <div class="field-group full-width">
+                    <label>Motivo:</label>
+                    {{ form.motivo_texto }}
+                </div>
+            </div>
+
+            <!-- Firmas Digitales -->
+            <div class="signatures-section">
+                <h4>Firmas Digitales</h4>
+                <div class="grid-two">
+                    <!-- Firma del Cliente -->
+                    <div class="firma-block">
+                        <label class="label">Firma del Cliente</label>
+                        <div class="canvas-box">
+                            <canvas id="canvasCliente" width="500" height="150"></canvas>
+                        </div>
+                        <div class="firma-actions">
+                            <button type="button" class="btn" id="btnClearCliente">Limpiar</button>
+                        </div>
+                        <input type="hidden" name="firma_cliente_b64" id="firma_cliente_b64">
+                    </div>
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Botón de Envío -->
+        <div class="actions">
+            <button type="submit" class="btn primary">Generar PDF del Acta</button>
+        </div>
+    </form>
+
+    <!-- ========= Estilos CSS ========= -->
+    <style>
+        /* Reset y base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 10px;
+        }
+
+        /* Alertas */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin: 16px 0;
+            font-weight: 500;
+        }
+
+        .alert-error {
+            background: #ffe6e6;
+            border: 2px solid #ff4444;
+            color: #cc0000;
+        }
+
+        .alert-success {
+            background: #e6ffe6;
+            border: 2px solid #44ff44;
+            color: #006600;
+        }
+
+        /* Cards */
+        .card {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .card legend {
+            font-weight: bold;
+            font-size: 16px;
+            color: #333;
+            padding: 0 10px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            background: white;
+        }
+
+        /* Grids */
+        .grid-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .grid-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 16px;
+            align-items: start;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Campos de formulario */
+        .field-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .field-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        input[type="time"],
+        select,
+        textarea {
+            padding: 8px 12px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            font-size: 14px;
+            background: white;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        input[type="time"]:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #666;
+            box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
+        }
+
+        textarea {
+            min-height: 80px;
+            resize: vertical;
+        }
+
+        /* Checkboxes */
+        .checkbox-group h4 {
+            margin: 0 0 12px 0;
+            color: #333;
+        }
+
+        .checkbox-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin: 12px 0;
+        }
+
+        .checkbox-column {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .checkbox-label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .checkbox-label input[type="checkbox"] {
+            margin-right: 8px;
+            transform: scale(1.2);
+        }
+
+        /* Tablas */
+        .table-wrapper {
+            overflow-x: auto;
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        .table th,
+        .table td {
+            border: 1px solid #333;
+            padding: 8px 6px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table th {
+            background: #f0f0f0;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .table input[type="text"],
+        .table input[type="checkbox"] {
+            border: 1px solid #666;
+            padding: 4px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        /* Sección de firmas */
+        .signatures-section h4 {
+            margin: 20px 0 12px 0;
+            color: #333;
+        }
+
+        .firma-block {
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            background: #f9f9f9;
+        }
+
+        .canvas-box {
+            border: 2px solid #333;
+            border-radius: 4px;
+            padding: 8px;
+            background: white;
+            margin: 8px 0;
+        }
+
+        .firma-actions {
+            text-align: center;
+            margin-top: 8px;
+        }
+
+        .label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #333;
+        }
+
+        /* Botones */
+        .btn {
+            padding: 10px 20px;
+            border: 2px solid #333;
+            border-radius: 4px;
+            background: white;
+            color: #333;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: #f0f0f0;
+        }
+
+        .btn.primary {
+            background: #333;
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: #555;
+        }
+
+        .actions {
+            text-align: center;
+            margin: 30px 0;
+        }
+
+        /* Sección de satisfacción */
+        .satisfaction-section {
+            margin: 20px 0;
+            padding: 16px;
+            border: 1px solid #666;
+            border-radius: 4px;
+            background: #f9f9f9;
+        }
+
+        .satisfaction-section h4 {
+            margin: 0 0 12px 0;
+            color: #333;
+        }
+
+        /* --- Asterisco rojo SOLO si el control dentro del field-group es required --- */
+        .field-group:has(input[required]) > label::after,
+        .field-group:has(select[required]) > label::after,
+        .field-group:has(textarea[required]) > label::after {
+            content: " *";
+            color: red;
+            font-weight: bold;
+        }
+
+        /* Asegura que no haya asterisco por defecto en otros labels */
+        .field-group > label::after { content: ""; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .grid-two,
+            .grid-three {
+                grid-template-columns: 1fr;
+            }
+
+            .checkbox-row {
+                flex-direction: column;
+                gap: 8px;
+            }
+
+            body {
+                padding: 10px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+
+    <!-- ========= JavaScript para Signature Pad ========= -->
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
+    <script>
+        // Inicializar Signature Pads
+        const canvasCliente = document.getElementById('canvasCliente');
+        const padCliente = new SignaturePad(canvasCliente, { 
+            minWidth: 0.8, 
+            maxWidth: 2.2,
+            penColor: 'black',
+            backgroundColor: 'white'
+        });
+
+        // Botones para limpiar firmas
+        document.getElementById('btnClearCliente').addEventListener('click', () => {
+            padCliente.clear();
+        });
+
+        // Función para ajustar canvas en pantallas retina
+        function resizeCanvas(canvas, pad) {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            const rect = canvas.getBoundingClientRect();
+            
+            canvas.width = rect.width * ratio;
+            canvas.height = rect.height * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+            canvas.style.width = rect.width + 'px';
+            canvas.style.height = rect.height + 'px';
+            
+            pad.clear();
+        }
+
+        // Redimensionar canvas al cargar y al cambiar tamaño
+        function initializeCanvas() {
+            resizeCanvas(canvasCliente, padCliente);
+        }
+
+        window.addEventListener('resize', initializeCanvas);
+        window.addEventListener('load', initializeCanvas);
+
+        // Manejar envío del formulario
+        const form = document.querySelector('form');
+        form.addEventListener('submit', (e) => {
+            // Validación opcional: requerir firma del cliente
+            // if (padCliente.isEmpty()) {
+            //     alert('La firma del cliente es obligatoria');
+            //     e.preventDefault();
+            //     return;
+            // }
+
+            // Guardar las firmas como base64 en campos ocultos
+            const firmaClienteField = document.getElementById('firma_cliente_b64');
+
+            if (!padCliente.isEmpty()) {
+                firmaClienteField.value = padCliente.toDataURL('image/png');
+            } else {
+                firmaClienteField.value = '';
+            }
+        });
+
+        // Inicialización inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeCanvas();
+            
+            // Agregar validación de números en campos numéricos
+            const numeroInputs = document.querySelectorAll('input[type="number"]');
+            numeroInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    if (this.value < 0) {
+                        this.value = 0;
+                    }
+                });
+            });
+
+            // Mejorar la experiencia de checkboxes
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    if (this.checked) {
+                        this.parentElement.style.fontWeight = 'bold';
+                    } else {
+                        this.parentElement.style.fontWeight = 'normal';
+                    }
+                });
+            });
+
+            // Agregar funcionalidad para mostrar/ocultar secciones según tipo de servicio
+            const servicioCheckboxes = document.querySelectorAll('input[name*="mantenimiento"], input[name*="instalacion"], input[name*="post_venta"]');
+            const seccionMantenimiento = document.querySelector('fieldset legend:contains("V.1")');
+            
+            servicioCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    // Lógica para mostrar secciones relevantes según el tipo de servicio
+                    updateSectionVisibility();
+                });
+            });
+
+            function updateSectionVisibility() {
+                // Esta función puede expandirse para mostrar/ocultar secciones
+                // según el tipo de servicio seleccionado
+            }
+        });
+    </script>
+</body>
+</html>
