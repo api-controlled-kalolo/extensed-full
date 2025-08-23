@@ -13,4 +13,4 @@ RUN pip install --no-cache-dir -r requirements.txt \
 COPY . .
 
 # Railway define $PORT; pasamos tunables vía envs
-CMD ["sh","-c","gunicorn main.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-1} --threads ${WEB_THREADS:-1} --timeout ${WEB_TIMEOUT:-120}"]
+CMD ["sh","-c","gunicorn main.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers ${WEB_CONCURRENCY:-1} --threads ${WEB_THREADS:1} --timeout ${WEB_TIMEOUT:-120}"]
