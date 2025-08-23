@@ -16,6 +16,7 @@ WKHTML_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
 
 # Create your views here.
 
+@login_required
 def create_acta(request):
     #Solo se esta ingresando a la página
     if request.method == 'GET':
