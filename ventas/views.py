@@ -6,6 +6,7 @@ from django.shortcuts import render
 from .forms import ActaServicioForm, EquiposActaInlineFormSet, AccionesActaLineFormSet
 import pdfkit
 from django.urls import reverse
+from services.pdf_enginge import html_to_pdf_bytes_playwright
 
 from services.google_sheets import read_range, read_ranges, write_range, write_ranges, append_rows
 from services.google_gas import subir_pdf_a_gas
@@ -919,7 +920,7 @@ def create_acta(request):
                     html_rendered = Template(plantilla_html).render(Context({'acta': new_acta, 'equipos': new_acta.equipos.all(), 'acciones': new_acta.acciones.all(),'firma_cliente_b64': firma_cliente_b64,}))
                     
                     # Convertir a PDF
-                    pdf_bytes = html_to_pdf_bytes_wkhtml(html_rendered)
+                    pdf_bytes = html_to_pdf_bytes_playwright(html_rendered)
                     if not pdf_bytes:
                         return render(request, 'actas/create_acta.html', {
                             'form': ActaServicioForm(),
