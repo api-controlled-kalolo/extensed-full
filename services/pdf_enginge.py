@@ -9,13 +9,10 @@ _lock = threading.Lock()
 def _shutdown():
     global _playwright, _browser
     try:
-        if _browser:
-            _browser.close()
-        if _playwright:
-            _playwright.stop()
+        if _browser: _browser.close()
+        if _playwright: _playwright.stop()
     finally:
-        _browser = None
-        _playwright = None
+        _browser = None; _playwright = None
 
 def _get_browser():
     global _playwright, _browser
@@ -23,7 +20,6 @@ def _get_browser():
         with _lock:
             if _browser is None:
                 _playwright = sync_playwright().start()
-                # Si corres como root (Docker), agrega --no-sandbox
                 _browser = _playwright.chromium.launch(headless=True, args=["--no-sandbox"])
                 atexit.register(_shutdown)
     return _browser
