@@ -47,7 +47,7 @@ def create_acta(request):
                     equipos.save()
                     acciones.save()
                     
-                    firma_cliente_b64 = request.POST.get('firma_cliente_b64')  # 'data:image/png;base64,...' o '' 
+                    firma_tecnico_b64 = request.POST.get('firma_tecnico_b64')  # 'data:image/png;base64,...' o '' 
                     
                     plantilla_html = r"""
                     <!DOCTYPE html>
@@ -860,54 +860,32 @@ def create_acta(request):
                                 <div class="text-area">{{ acta.comentarios_texto|default:"" }}</div>
                             </div>
 
-                            <!-- Sección VIII: Firmas -->
+                            <!-- Sección VII: Firmas -->
                             <div class="seccion-group">
                                 <div class="section-title">VII. FIRMAS</div>
                                 
                                 <div class="firmas-container">
                                     <div class="firma-box">
-                                        <div class="firma-title">CLIENTE</div>
+                                        <div class="firma-title">TÉCNICO</div>
                                         <div class="firma-field">
                                             <span class="field-label">Nombre:</span><br>
-                                            <div class="firma-line">{{ acta.nombre_cliente|default:"" }}</div>
+                                            <div class="firma-line">{{ acta.nombre_tecnico|default:"" }}</div>
                                         </div>
                                         <div class="firma-field">
                                             <span class="field-label">DNI:</span><br>
-                                            <div class="firma-line">{{ acta.dni_cliente|default:"" }}</div>
+                                            <div class="firma-line">{{ acta.dni_tecnico|default:"" }}</div>
                                         </div>
                                         <div class="firma-field">
                                             <span class="field-label">Firma:</span>
                                             <div class="firma-image-area">
-                                                {% if firma_cliente_b64 %}
-                                                    <img src="{{ firma_cliente_b64 }}" alt="Firma del Cliente">
+                                                {% if firma_tecnico_b64 %}
+                                                    <img src="{{ firma_tecnico_b64 }}" alt="Firma del Técnico">
                                                 {% else %}
                                                     &nbsp;
                                                 {% endif %}
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-
-                                <!-- Negación de firma -->
-                                <div class="negacion-firma">
-                                    <table style="width: 100%; border: none;">
-                                        <tr>
-                                            <td style="width: 5%; border: none; padding: 0; vertical-align: top;">
-                                                <div class="checkbox-group">
-                                                    {% if acta.el_cliente_nego_acta %}✔{% else %}<span class="checkbox"></span>{% endif %}
-                                                </div>
-                                            </td>
-                                            <td style="width: 35%; border: none; padding: 0 10px; vertical-align: top;">
-                                                <span class="field-label">EL CLIENTE SE NEGÓ A FIRMAR EL ACTA DE CONFORMIDAD</span>
-                                            </td>
-                                            <td style="width: 10%; border: none; padding: 0; vertical-align: top;">
-                                                <span class="field-label">Motivo:</span>
-                                            </td>
-                                            <td style="width: 50%; border: none; padding: 0; vertical-align: top;">
-                                                <div class="text-area-small">{{ acta.motivo_texto|default:"" }}</div>
-                                            </td>
-                                        </tr>
-                                    </table>
                                 </div>
                             </div>
 
@@ -920,7 +898,7 @@ def create_acta(request):
                     </body>
                     </html>
                     """
-                    html_rendered = Template(plantilla_html).render(Context({'acta': new_acta, 'equipos': new_acta.equipos.all(), 'acciones': new_acta.acciones.all(),'firma_cliente_b64': firma_cliente_b64,}))
+                    html_rendered = Template(plantilla_html).render(Context({'acta': new_acta, 'equipos': new_acta.equipos.all(), 'acciones': new_acta.acciones.all(),'firma_tecnico_b64': firma_tecnico_b64,}))
                     
                     # Convertir a PDF
                     pdf_bytes = html_to_pdf_bytes_gotenberg(html_rendered)

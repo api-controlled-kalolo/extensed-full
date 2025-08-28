@@ -163,7 +163,6 @@
                             <th>MAC/PON</th>
                             <th>UA</th>
                             <th>Datos TV</th>
-                            {% if equipos.can_delete %}<th>Eliminar</th>{% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -178,10 +177,6 @@
                             <td>{{ e.mac_pon }}</td>
                             <td>{{ e.ua }}</td>
                             <td>{{ e.datos_tv }}</td>
-                            {% if equipos.can_delete %}
-                                <td>{{ e.DELETE }}</td>
-                            {% endif %}
-                            {% for hidden in e.hidden_fields %}{{ hidden }}{% endfor %}
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -422,7 +417,6 @@
                         <tr>
                             <th>Código</th>
                             <th>Acción</th>
-                            {% if acciones.can_delete %}<th>Eliminar</th>{% endif %}
                         </tr>
                     </thead>
                     <tbody>
@@ -430,10 +424,6 @@
                         <tr>
                             <td>{{ a.codigo }}</td>
                             <td>{{ a.acciones_text }}</td>
-                            {% if acciones.can_delete %}
-                                <td>{{ a.DELETE }}</td>
-                            {% endif %}
-                            {% for hidden in a.hidden_fields %}{{ hidden }}{% endfor %}
                         </tr>
                         {% endfor %}
                     </tbody>
@@ -486,13 +476,13 @@
             </div>
 
             <!-- Negativa del Cliente -->
-            <div class="checkbox-group">
+            <!-- <div class="checkbox-group">
                 <label class="checkbox-label">{{ form.el_cliente_nego_acta }} El Cliente negó el Acta</label>
                 <div class="field-group full-width">
                     <label>Motivo:</label>
                     {{ form.motivo_texto }}
                 </div>
-            </div>
+            </div> -->
 
             <!-- Firmas Digitales -->
             <div class="signatures-section">
@@ -500,6 +490,17 @@
                 <div class="grid-two">
                     <!-- Firma del Cliente -->
                     <div class="firma-block">
+                        <label class="label">Firma del Técnico</label>
+                        <div class="canvas-box">
+                            <canvas id="canvasTecnico" width="500" height="150"></canvas>
+                        </div>
+                        <div class="firma-actions">
+                            <button type="button" class="btn" id="btnClearTecnico">Limpiar</button>
+                        </div>
+                        <input type="hidden" name="firma_tecnico_b64" id="firma_tecnico_b64">
+                    </div>
+                    <!-- Firma del Cliente -->
+                    <!-- <div class="firma-block">
                         <label class="label">Firma del Cliente</label>
                         <div class="canvas-box">
                             <canvas id="canvasCliente" width="500" height="150"></canvas>
@@ -508,7 +509,7 @@
                             <button type="button" class="btn" id="btnClearCliente">Limpiar</button>
                         </div>
                         <input type="hidden" name="firma_cliente_b64" id="firma_cliente_b64">
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </fieldset>
@@ -825,17 +826,30 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.6/dist/signature_pad.umd.min.js"></script>
     <script>
         // Inicializar Signature Pads
-        const canvasCliente = document.getElementById('canvasCliente');
-        const padCliente = new SignaturePad(canvasCliente, { 
+        // const canvasCliente = document.getElementById('canvasCliente');
+        // const padCliente = new SignaturePad(canvasCliente, { 
+        //     minWidth: 0.8, 
+        //     maxWidth: 2.2,
+        //     penColor: 'black',
+        //     backgroundColor: 'white'
+        // });
+
+        const canvasTecnico = document.getElementById('canvasTecnico');
+        const padTecnico = new SignaturePad(canvasCliente, { 
             minWidth: 0.8, 
             maxWidth: 2.2,
             penColor: 'black',
             backgroundColor: 'white'
         });
 
+
         // Botones para limpiar firmas
-        document.getElementById('btnClearCliente').addEventListener('click', () => {
-            padCliente.clear();
+        // document.getElementById('btnClearCliente').addEventListener('click', () => {
+        //     padCliente.clear();
+        // });
+
+        document.getElementById('btnClearTecnico').addEventListener('click', () => {
+            padTecnico.clear();
         });
 
         // Función para ajustar canvas en pantallas retina
@@ -854,7 +868,8 @@
 
         // Redimensionar canvas al cargar y al cambiar tamaño
         function initializeCanvas() {
-            resizeCanvas(canvasCliente, padCliente);
+            //resizeCanvas(canvasCliente, padCliente);
+            resizeCanvas(canvasTecnico, padTecnico);
         }
 
         window.addEventListener('resize', initializeCanvas);
@@ -871,12 +886,19 @@
             // }
 
             // Guardar las firmas como base64 en campos ocultos
-            const firmaClienteField = document.getElementById('firma_cliente_b64');
+            // const firmaClienteField = document.getElementById('firma_cliente_b64');
+            const frimaTecnicoField = document.getElementById('firma_tecnico_b64')
 
-            if (!padCliente.isEmpty()) {
-                firmaClienteField.value = padCliente.toDataURL('image/png');
+            // if (!padCliente.isEmpty()) {
+            //     firmaClienteField.value = padCliente.toDataURL('image/png');
+            // } else {
+            //     firmaClienteField.value = '';
+            // }
+
+            if (!padTecnico.isEmpty()){
+                frimaTecnicoField.value = padTecnico.toDataURL('image/png')
             } else {
-                firmaClienteField.value = '';
+                frimaTecnicoField.value = ''
             }
         });
 
