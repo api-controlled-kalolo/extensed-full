@@ -610,17 +610,34 @@ def create_acta(request):
                                         </td>
                                         <td>
                                             <div class="checkbox-group">
-                                                {% if acta.mantenimiento_atencionReclamo_Calidad %}✔{% else %}<span class="checkbox"></span>{% endif %} Mantenimiento/Atención reclamo/Calidad
+                                                {% if acta.cambio_de_plan %}✔{% else %}<span class="checkbox"></span>{% endif %} Cambio de Plan
                                             </div>
                                         </td>
                                         <td>
                                             <div class="checkbox-group">
-                                                {% if acta.retiro %}✔{% else %}<span class="checkbox"></span>{% endif %} Retiro de equipos
+                                                {% if acta.migracion %}✔{% else %}<span class="checkbox"></span>{% endif %} Migración
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <div class="checkbox-group">
+                                                {% if acta.traslado_externo %}✔{% else %}<span class="checkbox"></span>{% endif %} Traslado Externo
                                             </div>
                                         </td>
                                         <td>
                                             <div class="checkbox-group">
-                                                {% if acta.retiro_acometida %}✔{% else %}<span class="checkbox"></span>{% endif %} Retiro de acometida
+                                                {% if acta.traslado_interno %}✔{% else %}<span class="checkbox"></span>{% endif %} Traslado Interno
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="checkbox-group">
+                                                {% if acta.traslado_acometida %}✔{% else %}<span class="checkbox"></span>{% endif %} Traslado Acometida
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="checkbox-group">
+                                                {% if acta.retiro %}✔{% else %}<span class="checkbox"></span>{% endif %} Retiro
                                             </div>
                                         </td>
                                     </tr>

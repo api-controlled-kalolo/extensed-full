@@ -32,7 +32,7 @@ class ActaServicioTecnico(models.Model):
     # 3.1 Personal Tecnico T1/T2 (Nombres apellidos)
     t1_lider = models.CharField(max_length=30)
     t2_apoyo = models.CharField(max_length=30)
-    t_adicional = models.CharField(max_length=30)
+    t_adicional = models.CharField(max_length=30, blank=True)
     
     # 3.3 PLATAFORMA (Aplica para residencias y Claro empresas)
     HFC = models.BooleanField(default=False, blank=True)
@@ -46,9 +46,12 @@ class ActaServicioTecnico(models.Model):
     # 3.4 SERVICIO REALIZADO
     instalacion = models.BooleanField(default=False, blank=True)
     post_venta = models.BooleanField(default=False, blank=True)
-    mantenimiento_atencionReclamo_Calidad = models.BooleanField(default=False, blank=True)
-    retiro = models.BooleanField(default=False, blank=True)
-    retiro_acometida = models.BooleanField(default=False, blank=True)
+    cambio_de_plan = models.BooleanField(default=False, blank=True) # Cambio de nombre
+    migracion = models.BooleanField(default=False, blank=True) # Cambio de nombre
+    traslado_externo = models.BooleanField(default=False, blank=True)
+    traslado_interno = models.BooleanField(null=True) # nuevos
+    traslado_acometida = models.BooleanField(null=True) # nuevos
+    retiro = models.BooleanField(null=True) # nuevos
     
     # 3.5 MATERIALES EMPLEADOS 1
     Coaxial_c_mens_RG6 = models.IntegerField(default=0, blank=True)
