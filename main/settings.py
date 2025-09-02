@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-)r2_4-=41lud9j_*%x@=@1$7#!ah%a_k019@gf2*^2e-g%)sbj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost','extensed-full-production.up.railway.app']
+ALLOWED_HOSTS = ['localhost','extensed-full-production.up.railway.app', '127.0.0.1']
 
 CSRF_TRUSTED_ORIGINS = [
     "https://extensed-full-production.up.railway.app",
@@ -149,3 +149,10 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 LOGIN_URL = '/login/'
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'django_cache')
+    }
+}

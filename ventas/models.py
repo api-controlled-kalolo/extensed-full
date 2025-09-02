@@ -49,9 +49,9 @@ class ActaServicioTecnico(models.Model):
     cambio_de_plan = models.BooleanField(default=False, blank=True) # Cambio de nombre
     migracion = models.BooleanField(default=False, blank=True) # Cambio de nombre
     traslado_externo = models.BooleanField(default=False, blank=True)
-    traslado_interno = models.BooleanField(null=True) # nuevos
-    traslado_acometida = models.BooleanField(null=True) # nuevos
-    retiro = models.BooleanField(null=True) # nuevos
+    traslado_interno = models.BooleanField(default=False, blank=True) # nuevos
+    traslado_acometida = models.BooleanField(default=False, blank=True) # nuevos
+    retiro = models.BooleanField(default=False, blank=True) # nuevos
     
     # 3.5 MATERIALES EMPLEADOS 1
     Coaxial_c_mens_RG6 = models.IntegerField(default=0, blank=True)
@@ -109,8 +109,8 @@ class ActaServicioTecnico(models.Model):
     comentarios_texto = models.TextField(blank=True)
     
     # VII. CONFORMIDAD DEL SERVICIO
-    nombre_cliente = models.CharField(max_length=20, null=False)
-    dni_cliente = models.CharField(max_length=10, null=False)
+    nombre_tecnico = models.CharField(max_length=20, null=False)
+    dni_tecnico = models.CharField(max_length=10, null=False)
     el_cliente_nego_acta = models.BooleanField(default=False)
     motivo_texto = models.TextField(blank=True)
     

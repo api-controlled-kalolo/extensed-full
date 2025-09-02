@@ -6,6 +6,24 @@
     <title>Generar Acta de Servicio Técnico</title>
 </head>
 <body>
+    <nav class="topbar" aria-label="Atajos">
+        <a class="icon-btn" href="{% url 'ventas:actas_gestion'%}" title="Ir al inicio" aria-label="Ir al inicio">
+            <!-- Casa -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M3 10.5L12 3l9 7.5"></path>
+            <path d="M5 11.5v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"></path>
+            </svg>
+        </a>
+        <a class="icon-btn" href="javascript:history.back()" title="Regresar" aria-label="Regresar">
+            <!-- Flecha atrás -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M15 19l-7-7 7-7"></path>
+            <path d="M4 12h13"></path>
+            </svg>
+        </a>
+    </nav>
     <h1>Generar Acta de Servicio Técnico</h1>
 
     {% if error %}<div class="alert alert-error">{{ error }}</div>{% endif %}
@@ -216,11 +234,15 @@
                     <label class="checkbox-label">{{ form.instalacion }} Instalación</label>
                     <label class="checkbox-label">{{ form.post_venta }} Post Venta</label>
                     <label class="checkbox-label">{{ form.cambio_de_plan }} Cambio de Plan</label>
+                </div>
+                <div class="checkbox-column">
                     <label class="checkbox-label">{{ form.traslado_externo }} Traslado Externo</label>
                     <label class="checkbox-label">{{ form.traslado_interno }} Traslado Interno</label>
                     <label class="checkbox-label">{{ form.traslado_acometida }} Traslado Acometida</label>
-                    <label class="checkbox-label">{{ form.retiro }} Retiro</label>
                 </div>
+                <div class="checkbox-column">
+                    <label class="checkbox-label">{{ form.retiro }} Retiro</label>
+                </div>  
             </div>
         </fieldset>
 
@@ -468,12 +490,12 @@
             <!-- Datos de Firmas -->
             <div class="grid-two">
                 <div class="field-group">
-                    <label>Nombre Cliente:</label>
-                    {{ form.nombre_cliente }}
+                    <label>Nombre Técnico:</label>
+                    {{ form.nombre_tecnico }}
                 </div>
                 <div class="field-group">
-                    <label>DNI Cliente:</label>
-                    {{ form.dni_cliente }}
+                    <label>DNI Técnico:</label>
+                    {{ form.dni_tecnico }}
                 </div>
             </div>
 
@@ -822,6 +844,17 @@
                 font-size: 24px;
             }
         }
+        /* ——— Barra superior con iconos ——— */
+        .topbar{
+        position:sticky;top:0;z-index:10;display:flex;gap:8px;align-items:center;
+        background:#fff;border-bottom:2px solid #333;padding:10px
+        }
+        .icon-btn{
+        display:inline-grid;place-items:center;width:36px;height:36px;border-radius:8px;
+        border:2px solid #333;background:#fff;color:#333;text-decoration:none
+        }
+        .icon-btn:hover{background:#f0f0f0}
+        .icon-btn svg{width:18px;height:18px}
     </style>
 
     <!-- ========= JavaScript para Signature Pad ========= -->
@@ -837,7 +870,7 @@
         // });
 
         const canvasTecnico = document.getElementById('canvasTecnico');
-        const padTecnico = new SignaturePad(canvasCliente, { 
+        const padTecnico = new SignaturePad(canvasTecnico, { 
             minWidth: 0.8, 
             maxWidth: 2.2,
             penColor: 'black',
@@ -946,6 +979,7 @@
                 // según el tipo de servicio seleccionado
             }
         });
+        
     </script>
 </body>
 </html>

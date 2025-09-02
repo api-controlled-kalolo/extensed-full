@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import authenticate, login
+from django.contrib.auth.decorators import login_required
 # Create your views here.
 def sign_in(request):
     if request.method == 'GET':
@@ -17,5 +18,8 @@ def sign_in(request):
         
         else:
             login(request, user)
-            return redirect('ventas:acta_create')
-        
+            return render(request, 'home.html')
+
+@login_required
+def home(request):
+    return render(request, 'home.html')

@@ -1,15 +1,11 @@
 from django.http import HttpResponse
 from django.template import Template, Context
 from django.contrib.auth.decorators import login_required
-
 from django.shortcuts import render
+from django.core.cache import cache
 from .forms import ActaServicioForm, EquiposActaInlineFormSet, AccionesActaLineFormSet
 import pdfkit
-from django.urls import reverse
-from services.pdf_enginge import html_to_pdf_bytes_playwright
 from services.gotenberg_engine import html_to_pdf_bytes_gotenberg 
-
-
 from services.google_sheets import read_range, read_ranges, write_range, write_ranges, append_rows
 from services.google_gas import subir_pdf_a_gas
 import uuid
@@ -19,18 +15,51 @@ WKHTML_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
 # Create your views here.
 
 @login_required
+def ventas_modulo(request):
+    return render(request, 'modules/ventas_interview.html')
+
+def gestion_actas(request):
+    return render(request, 'actas/enter.html')
+
+@login_required
 def create_acta(request):
+    # La clave para identificar tus datos en el caché
+    cache_key = 'datos_googlesheets'
+    # Intentamos obtener los datos del caché
+    data_googlesheets = cache.get(cache_key)
+        
+    # Si no están en el caché (es decir, es la primera vez o el caché expiró)
+    if not data_googlesheets:
+        spreadsheet_id = '1WMIl8f4KTsj_DvGpXIhFe9Mn7aRNKYp2CsPb0zERT_Q'
+        range_name = 'Configuraciones!A3:D'
+        data_googlesheets = read_range(spreadsheet_id, range_name) #[['hola'],[]]
+        data_googlesheets = [
+            item for item in data_googlesheets
+            if len(item) >= 4 and all(item[i] not in (None, '') for i in (1, 2, 3))
+        ]
+        # Guardamos los datos en el caché por 3600 segundos (1 hora)
+        # Puedes ajustar el tiempo de expiración según la frecuencia con la que cambian tus datos en la hoja
+        cache.set(cache_key, data_googlesheets, 300)
+    print(data_googlesheets)
+    choices_t1 = [(item[1], item[1]) for item in data_googlesheets if item]
+    
+    choices_t2 = [(item[2], item[2]) for item in data_googlesheets if item]
+    
+    # Crea SIEMPRE el form con las choices (GET y POST)
+    form = ActaServicioForm(
+        request.POST or None,
+        choices_t1=choices_t1,
+        choices_t2=choices_t2,
+    )
     #Solo se esta ingresando a la página
     if request.method == 'GET':
         return render(request,'actas/create_acta.html',{
-            'form': ActaServicioForm(),
+            'form': form,
             'equipos': EquiposActaInlineFormSet(),
             'acciones': AccionesActaLineFormSet()
         })
     else: 
         try:
-            print(request.POST)
-            form = ActaServicioForm(request.POST)
             equipos = EquiposActaInlineFormSet(request.POST)
             acciones = AccionesActaLineFormSet(request.POST)
             
@@ -985,9 +1014,12 @@ def create_acta(request):
                                 f"{new_acta.Plan}" if new_acta.Plan else "",
                                 f"{'✓' if new_acta.instalacion else ''}",
                                 f"{'✓' if new_acta.post_venta else ''}",
-                                f"{'✓' if new_acta.mantenimiento_atencionReclamo_Calidad else ''}",
+                                f"{'✓' if new_acta.cambio_de_plan else ''}",
+                                f"{'✓' if new_acta.migracion else ''}",
+                                f"{'✓' if new_acta.traslado_externo else ''}",
+                                f"{'✓' if new_acta.traslado_interno else ''}",
+                                f"{'✓' if new_acta.traslado_acometida else ''}",
                                 f"{'✓' if new_acta.retiro else ''}",
-                                f"{'✓' if new_acta.retiro_acometida else ''}",
                                 f"{new_acta.Coaxial_c_mens_RG6}",
                                 f"{new_acta.Coaxial_s_mens_RG6}",
                                 f"{new_acta.cable_telefonico}",
@@ -1026,8 +1058,8 @@ def create_acta(request):
                                 f"{new_acta.incoveniente_solucionado}" if new_acta.incoveniente_solucionado else "",
                                 f"{new_acta.indicar_porque}" if new_acta.indicar_porque else "",
                                 f"{new_acta.comentarios_texto}" if new_acta.comentarios_texto else "",
-                                f"{new_acta.nombre_cliente}" if new_acta.nombre_cliente else "",
-                                f"{new_acta.dni_cliente}" if new_acta.dni_cliente else "",
+                                f"{new_acta.nombre_tecnico}" if new_acta.nombre_tecnico else "",
+                                f"{new_acta.dni_tecnico}" if new_acta.dni_tecnico else "",
                                 f"{'✓' if new_acta.el_cliente_nego_acta else ''}",
                                 f"{new_acta.motivo_texto}" if new_acta.motivo_texto else "",
                             ]

@@ -3,6 +3,9 @@ from django.forms import inlineformset_factory
 from .models import ActaServicioTecnico,Equipos_ActaServicioTecnico, Acciones_ActaServicioTecnico
 
 class ActaServicioForm(forms.ModelForm):
+    t1_lider = forms.ChoiceField(label='Líder', required=True)
+    t2_apoyo = forms.ChoiceField(label='Apoyo', required=True)
+    t_adicional = forms.ChoiceField(label='Técnico Adicional', required=False)
     class Meta:
         model = ActaServicioTecnico
         # Colocamos todo menos el campo 'numero_acta'
@@ -24,6 +27,22 @@ class ActaServicioForm(forms.ModelForm):
                 }
             ),
         }
+    def __init__(self, *args, choices_t1=None, choices_t2=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Asegura widget <select>
+        self.fields["t1_lider"].widget = forms.Select()
+        self.fields["t2_apoyo"].widget = forms.Select()
+        self.fields["t_adicional"].widget = forms.Select()
+
+        # Placeholders + choices
+        c1 = [("", "— Selecciona —")] + (choices_t1 or [])
+        c2 = [("", "— Selecciona —")] + (choices_t2 or [])
+
+        self.fields["t1_lider"].choices = c1
+        self.fields["t2_apoyo"].choices = c2
+        # “Adicional” opcional
+        self.fields["t_adicional"].choices = [("", "— Ninguno —")] + (choices_t2 or [])
+        self.fields["t_adicional"].required = False
 
 class Equipos_ActaServicioForm(forms.ModelForm):
     class Meta:
