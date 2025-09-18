@@ -1,10 +1,35 @@
 from django.urls import path
 from ventas import views
+# filepath: ventas/urls.py
+from ventas.views import create_acta, gestion_actas, ventas_modulo, generar_cotizacion, menu_cotizaciones, crear_unidad_negocio, crear_proyecto, crear_cliente, crear_contacto, cotizaciones_dashboard
 
 app_name = 'ventas'
 
 urlpatterns = [
-    path('acta/create/', views.create_acta, name = 'acta_create'),
-    path('ventas/', views.ventas_modulo, name = 'modulo_ventas' ),
-    path('acta/gestion', views.gestion_actas, name = 'actas_gestion')
-]
+    # -- MODULO: Ventas
+    path('ventas/', ventas_modulo, name = 'modulo_ventas' ),
+    
+    # -- ACTAS
+    path('acta/create/', create_acta, name = 'acta_create'),
+    path('acta/gestion', gestion_actas, name = 'actas_gestion'),
+    
+    # -- COTIZACIONES
+    path('cotizacion/create', generar_cotizacion, name='cotizacion_create'),
+    path('cotizacion/gestion', menu_cotizaciones, name='cotizacion_gestion'),
+    path('cotizaciones/', views.cotizaciones_list, name='cotizaciones_list'),
+    path('cotizaciones/dashboard/', views.cotizaciones_dashboard, name='cotizaciones_dashboard'),
+    
+    # API: contactos por cliente
+    path('api/clientes/<int:cliente_id>/contactos', cotizaciones_dashboard, name='api_contactos_por_cliente'),
+    
+    # -- UN
+    path('unidadnegocio/create', crear_unidad_negocio, name='unidadnegocio'),
+    
+    # -- Proyecto
+    path('proyecto/create', crear_proyecto, name='proyectocrear'),
+    
+    # -- Cliente
+    path('clientes/create', crear_cliente, name='clientecrear'),
+    
+    path('contactos/create', crear_contacto, name="contactocrear" )
+]   

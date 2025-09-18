@@ -1,0 +1,304 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERP · Unidades de Negocio</title>
+
+  <!-- Tipografía Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* ==================== Tokens de la Guía ==================== */
+    :root{
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --primary-blue:#2563eb; --secondary-blue:#1d4ed8; --light-blue:#3b82f6; --accent-blue:#60a5fa;
+      --pure-white:#ffffff; --light-gray:#f8fafc; --medium-gray:#64748b; --dark-gray:#334155;
+      --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+
+      --gradient-primary:linear-gradient(135deg,#1e293b 0%,#0f172a 50%,#1e293b 100%);
+      --gradient-blue:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+      --gradient-accent:linear-gradient(135deg,#3b82f6 0%,#1e40af 100%);
+
+      --shadow-soft:0 4px 20px rgba(0,0,0,.15);
+      --shadow-medium:0 8px 32px rgba(0,0,0,.24);
+      --shadow-strong:0 16px 48px rgba(0,0,0,.35);
+
+      --transition:all .4s cubic-bezier(.4,0,.2,1);
+      --radius:20px;
+    }
+
+    /* ==================== Base ==================== */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden;
+    }
+
+    /* ==================== Fondo (orbs + grid) ==================== */
+    .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
+    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%;
+      filter:blur(50px); opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
+    .orb-1{background:var(--gradient-blue); top:-100px; left:-80px}
+    .orb-2{background:var(--gradient-accent); bottom:-120px; right:-60px; animation-delay:2s}
+    .orb-3{background:radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8); top:40%; left:55%; animation-delay:4s}
+    .grid-pattern{position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+                       linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+      background-size:40px 40px; mask-image:radial-gradient(ellipse at center, rgba(0,0,0,.8), transparent 70%);
+      animation:gridShift 30s linear infinite}
+    @keyframes float{50%{transform:translateY(-20px) scale(1.03)}}
+    @keyframes gridShift{to{background-position:40px 40px}}
+
+    /* ==================== Header ==================== */
+    .header{position:sticky; top:0; z-index:30; padding:12px 20px; background:rgba(10,14,26,.55);
+      backdrop-filter:blur(16px); border-bottom:1px solid var(--glass-border); animation:slideInDown .6s ease both}
+    .header-content{max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between}
+    .logo-section{display:flex; align-items:center; gap:12px}
+    .logo-section img{height:48px; filter:brightness(1.2); transition:var(--transition)}
+    .logo-section img:hover{filter:brightness(1.5)}
+    .system-title{margin:0; font-size:1.05rem; font-weight:800; letter-spacing:.4px}
+
+    .user-section{display:flex; align-items:center; gap:18px}
+    .system-status{display:flex; align-items:center; gap:8px; color:var(--accent-blue); font-weight:600}
+    .status-indicator{width:10px; height:10px; border-radius:50%; background:var(--accent-blue); box-shadow:0 0 12px var(--accent-blue)}
+    .user-profile{display:flex; align-items:center; gap:10px; padding:6px 10px; border-radius:16px;
+      background:var(--glass-bg); border:1px solid var(--glass-border)}
+    .user-avatar{width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
+      background:var(--gradient-blue); font-weight:700}
+
+    /* ==================== Contenido ==================== */
+    .container{max-width:1100px; margin:28px auto; padding:0 20px; animation:fadeInUp .5s ease both}
+    .breadcrumb{color:var(--accent-blue); font-size:.9rem; margin-bottom:6px}
+    .page-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px}
+    .title{margin:0; font-size:1.6rem; font-weight:800}
+    .desc{margin:4px 0 0; color:var(--light-gray)}
+
+    .nav-icons{display:flex;align-items:center;gap:10px;margin-left:10px}
+    .icon-btn{
+      display:grid;place-items:center;width:36px;height:36px;border-radius:12px;
+      background:var(--glass-bg);border:1px solid var(--glass-border);
+      color:var(--pure-white);text-decoration:none;transition:var(--transition);outline:none
+    }
+    .icon-btn:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.22);box-shadow:var(--shadow-soft)}
+    .icon-btn:focus{outline:2px solid var(--primary-blue);outline-offset:3px}
+    .icon-btn svg{width:20px;height:20px}
+
+    /* ==================== Card/Form ==================== */
+    .glass-card{
+      background:var(--glass-bg); backdrop-filter:blur(25px); border:1px solid var(--glass-border);
+      border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-soft); animation:slideInUp .6s ease both;
+    }
+    .form-grid{display:grid; grid-template-columns:1fr; gap:16px}
+    .field{display:flex; flex-direction:column; gap:8px}
+    .label{font-weight:700; font-size:.95rem}
+    .help{color:var(--medium-gray); font-size:.9rem}
+
+    .form-control{
+      width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
+      background:rgba(255,255,255,.06); color:var(--pure-white);
+      transition:var(--transition); box-shadow:inset 0 0 0 rgba(0,0,0,0);
+    }
+    .form-control::placeholder{color:#cbd5e1}
+    .form-control:focus{outline:none; border-color:rgba(96,165,250,.6); box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+
+    .errors{margin-top:6px; color:#fecaca; font-size:.9rem}
+    .nonfield{margin-bottom:10px}
+
+    .actions{display:flex; align-items:center; gap:12px; margin-top:8px}
+    .btn{
+      border:none; cursor:pointer; font-weight:700; border-radius:12px; padding:.8rem 1.2rem;
+      transition:var(--transition); display:inline-flex; align-items:center; gap:8px;
+    }
+    .btn-primary{background:var(--gradient-blue); color:var(--pure-white); box-shadow:var(--shadow-soft)}
+    .btn-primary:hover{transform:translateY(-1px); box-shadow:var(--shadow-medium)}
+    .btn-ghost{background:rgba(255,255,255,.06); color:var(--pure-white); border:1px solid var(--glass-border)}
+    .btn-ghost:hover{border-color:rgba(255,255,255,.22)}
+
+    .link{color:var(--accent-blue); text-decoration:none; font-weight:600}
+    .link:hover{text-decoration:underline}
+
+    /* ==================== Mensajes (Django messages) ==================== */
+    .messages{margin-bottom:16px}
+    .msg{
+      border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border);
+      background:rgba(21,128,61,.15); /* success por defecto */
+    }
+    .msg-success{background:rgba(21,128,61,.15)}
+    .msg-error{background:rgba(239,68,68,.15)}
+    .msg-info{background:rgba(59,130,246,.15)}
+
+    /* ==================== Responsive ==================== */
+    @media (max-width:768px){
+      .page-head{flex-direction:column; align-items:flex-start}
+    }
+
+    /* ==================== Animaciones ==================== */
+    @keyframes slideInUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
+    @keyframes slideInDown{from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:translateY(0)}}
+    @keyframes fadeInUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
+
+    /* Accesibilidad: reducir movimiento */
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+    }
+  </style>
+</head>
+<body>
+  <!-- Efectos de fondo -->
+  <div class="background-effects" aria-hidden="true">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="gradient-orb orb-3"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <!-- Header -->
+  <header class="header" role="banner">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logo" />
+        <h1 class="system-title">ERP · Unidades de Negocio</h1>
+
+        <!-- Navegación rápida -->
+        <div class="nav-icons" role="group" aria-label="Navegación rápida">
+          <a class="icon-btn" href="{% url 'ventas:modulo_ventas' %}" title="Ir al inicio" aria-label="Ir al inicio">
+            <!-- Home -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 10.5L12 3l9 7.5"></path>
+              <path d="M5 11.5v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"></path>
+            </svg>
+          </a>
+          <a class="icon-btn" href="javascript:history.back()" title="Regresar" aria-label="Regresar">
+            <!-- Back -->
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 19l-7-7 7-7"></path>
+              <path d="M4 12h13"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="user-section">
+        <div class="system-status">
+          <div class="status-indicator" aria-hidden="true"></div>
+          <span>Sistema Operativo</span>
+        </div>
+        <div class="user-profile" role="group" aria-label="Perfil de usuario">
+          <div class="user-avatar" aria-hidden="true">{{ user.first_name.0|default:'U' }}</div>
+          <div class="user-details">
+            <div class="user-name">Hola, {{ user.get_full_name|default:user.username|default:'Usuario' }}!</div>
+            <div class="user-role">Ventas</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Contenido -->
+  <main class="container" id="main">
+    <div class="breadcrumb">Ventas / Unidades de Negocio / Crear</div>
+
+    <div class="page-head">
+      <div>
+        <h2 class="title">Crear Unidad de Negocio (UN)</h2>
+        <p class="desc">Registra una nueva UN para organizar tus operaciones comerciales.</p>
+      </div>
+    </div>
+
+    <!-- Mensajes del sistema -->
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="msg {% if message.tags %}msg-{{ message.tags }}{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <!-- Card/Formulario -->
+    <section class="glass-card" aria-label="Formulario de creación de Unidad de Negocio">
+      <form method="post" id="unForm" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="errors nonfield" role="alert">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <div class="form-grid">
+          <!-- Campo: Nombre -->
+          <div class="field">
+            <label for="{{ form.nombre.id_for_label }}" class="label">Nombre de la UN</label>
+            {{ form.nombre }}
+            {% if form.nombre.errors %}
+              <div class="errors" role="alert">{{ form.nombre.errors }}</div>
+            {% else %}
+              <small class="help">Ejemplo: Ventas Lima, Servicios Postventa, etc.</small>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn" aria-label="Crear Unidad de Negocio">
+            <!-- Plus icon -->
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14M5 12h14"></path>
+            </svg>
+            <span>Crear UN</span>
+          </button>
+
+          <button type="reset" class="btn btn-ghost" aria-label="Limpiar formulario">
+            <!-- Eraser -->
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 16L9 5 4 10l11 11h5zM4 10l-2 2 7 7 2-2"></path>
+            </svg>
+            <span>Limpiar</span>
+          </button>
+
+          <a href="#" class="link" aria-label="Ver listado de UN">Ver listado</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <!-- UX Scripts -->
+  <script>
+    // Animación escalonada suave (si añades más cards)
+    document.addEventListener('DOMContentLoaded', () => {
+      // Auto-ocultar mensajes después de 4s
+      const box = document.querySelector('.messages');
+      if (box){
+        setTimeout(() => { box.style.transition='opacity .5s'; box.style.opacity='0'; }, 4000);
+        setTimeout(() => { box.remove?.(); }, 4800);
+      }
+    });
+
+    // Previene doble submit + estado de loading
+    const form = document.getElementById('unForm');
+    const btn = document.getElementById('submitBtn');
+    form?.addEventListener('submit', () => {
+      btn.disabled = true;
+      btn.style.opacity = .7;
+      btn.insertAdjacentHTML('beforeend','<span aria-hidden="true" style="display:inline-block;margin-left:8px">· · ·</span>');
+    });
+  </script>
+
+  <!-- Mejora: aplica clase visual al input si no usas crispy -->
+  <script>
+    // Asegura que el widget tenga clase form-control (por si Django no lo inyecta)
+    const nombre = document.getElementById('{{ form.nombre.id_for_label }}');
+    if (nombre && !nombre.classList.contains('form-control')) nombre.classList.add('form-control');
+  </script>
+</body>
+</html>

@@ -1,6 +1,10 @@
 from django.db import models
+from django.core.validators import MinValueValidator, MaxValueValidator
+from decimal import Decimal
+from datetime import datetime
 
 # Create your models here.
+# -- ACTAS --
 class ActaServicioTecnico(models.Model):
     # 1. Información de la Orden
     numero_acta = models.CharField(max_length=20, unique=True, null=True, blank= True,help_text="Identificador único del Acta")
@@ -139,3 +143,108 @@ class Acciones_ActaServicioTecnico(models.Model):
     acta_principal = models.ForeignKey(ActaServicioTecnico, on_delete=models.CASCADE, related_name='acciones')
     codigo = models.CharField(max_length=20, blank=True)
     acciones_text = models.CharField(max_length=50, blank=True)
+
+
+class UnidadNegocio(models.Model):
+    codigo = models.CharField(blank=False, unique=True, null=False, max_length=20)
+    nombre = models.CharField(blank=False, unique=True, null=False, max_length=50)
+    
+    def __str__(self):
+        # Elige el formato que quieras mostrar en el select:
+        # Solo nombre:
+        # return self.nombre
+        # Código + nombre (mi favorito):
+        return f"{self.codigo} — {self.nombre}"
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.codigo:
+            super().save(*args, **kwargs)
+            self.codigo = f"UN-00{self.pk:01d}"
+            return super().save(update_fields=["codigo"])
+        return super().save(*args, **kwargs)
+    
+# -- PROYECTO --
+class Proyecto(models.Model):
+    codigo = models.CharField(blank=False, unique=True, null=False, max_length=20)
+    nombre = models.CharField(blank=False, null=False, max_length=20)
+    
+    #Relacion
+    unidad_negocio_principal = models.ForeignKey(UnidadNegocio, on_delete=models.CASCADE, related_name='unidad_negocio')
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.codigo:
+            super().save(*args, **kwargs)
+            self.codigo = f"P-00{self.pk:01d}"
+            return super().save(update_fields=["codigo"])
+        return super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.nombre}"
+
+
+class Cliente(models.Model):
+    proyecto_principal = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='proyecto')
+    codigo = models.CharField(blank=False, unique=True, null=False, max_length=20)
+    ruc = models.CharField(blank=False, unique=True, null=False, max_length=20)
+    razon_social = models.CharField(blank=False, null=False, max_length=20)
+    direccion = models.CharField(blank=False, null=False, max_length=50)
+    distrito = models.CharField(blank=False, null=False, max_length=20)
+    provincia = models.CharField(blank=False, null=False, max_length=25)
+
+    def __str__(self):
+        # Mostrar razón social y RUC en selects
+        return f"{self.razon_social} ({self.ruc})"
+
+class Contacto(models.Model):
+    cliente_principal = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='contacto')
+    apellidos = models.CharField(blank=False, null=False, max_length=20)
+    nombres = models.CharField(blank=False,  null=False, max_length=20)
+    cargo = models.CharField(blank=False, null=False, max_length=20)
+    correo = models.EmailField(blank=False)
+    Celular = models.CharField(max_length=9, blank=False)
+    Sede = models.CharField(blank=False, null=False, max_length=20)
+
+    def __str__(self):
+        # Mostrar nombre completo y cargo
+        return f"{self.nombres} {self.apellidos} - {self.cargo}"
+    
+# -- COTIZACIONES --
+class Cotizacion(models.Model):
+    numero_cotizacion = models.CharField(max_length=20, unique=True, null=False, blank=False, help_text="Identificador unico para generar las cotizaciones, formato a seguir: 'COT[numero][año]'") # Completado automático por el sistema
+    nombre_cotizacion = models.CharField(max_length=50, blank=False, null=False) # Dato ingresado manualmente
+    ruc = models.CharField(max_length=30, blank=False, null=False) # Sistema lo determina
+    razon_social = models.CharField(max_length=30, blank=False) # Sistema lo determina
+    fecha_creacion = models.DateField(auto_now_add=True) # Sistema lo determina
+    celular = models.CharField(max_length=9, blank=False, null=False) # Lista desplegable
+    direccion = models.CharField(max_length=50, blank=False, null=False) # Lista desplegable
+    correo = models.EmailField(blank=False) # Lista desplegable
+    alcance_total_oferta = models.TextField()
+    
+    #Relaciones
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='cotizaciones',)
+    contacto = models.ForeignKey(Contacto, on_delete=models.CASCADE, related_name='cotizaciones_contacto', )
+    
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.numero_cotizacion:
+            super().save(*args, **kwargs)
+            self.numero_cotizacion = f"COT00{self.pk:02d}{datetime.now().year}"
+            self.ruc = f"20607494283"
+            self.razon_social = f"SVC INGENIEROS S.A.C"
+            self.direccion = f"Comas, Lima, Lima"
+            return super().save(update_fields=["numero_cotizacion", "ruc", "razon_social", "direccion"])
+        return super().save(*args, **kwargs)
+    
+class Detalles_Cotizacion(models.Model):
+    cotizacion_principal = models.ForeignKey(Cotizacion, on_delete=models.CASCADE, related_name='detalles')
+    descripcion = models.TextField(blank=False, help_text="Ingrese la descripción de la Cotización") # Ingreso Manual
+    unidad = models.CharField(choices=[('','-- Selecciona --'),('UNIDAD','UNIDAD'),('DECENA', 'DECENA')], blank=False) # Ingreso Manual
+    cantidad = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(300)]) # Ingreso Manual
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2) # Ingreso Manual
+
+    @property
+    def precio_total(self):
+        return (self.cantidad * self.precio_unitario).quantize(Decimal("0.01"))
+    
+    def __str__(self):
+        return f"{self.producto} x {self.cantidad} = {self.precio_total}"

@@ -210,7 +210,7 @@
       </a>
 
       <!-- ==== Documentos de venta ==== -->
-      <a class="tile" role="button" aria-label="Cotizaciones de Venta" href="#">
+      <a class="tile" role="button" aria-label="Cotizaciones de Venta" href="{% url 'ventas:cotizacion_gestion' %}">
         <div class="kpi">18</div>
         <div class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -320,7 +320,7 @@
         <div class="meta">Socios de negocio</div>
       </a>
 
-      <a class="tile" role="button" aria-label="Crear Cliente" href="#">
+      <a class="tile" role="button" aria-label="Crear Cliente" href="{% url 'ventas:clientecrear'%}">
         <div class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="9" cy="8" r="3"/><path d="M15 8h6M18 5v6"/><path d="M4 21a6 6 0 0 1 10-4"/>
@@ -349,6 +349,36 @@
         </div>
         <div class="title">Crear Actividad</div>
         <div class="meta">Llamada / reunión</div>
+      </a>
+
+      <a class="tile" role="button" aria-label="Crear Pedido" href="{% url 'ventas:unidadnegocio' %}">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <div class="title">Crear Unidad de Negocio</div>
+        <div class="meta">UN</div>
+      </a>
+
+      <a class="tile" role="button" aria-label="Crear Pedido" href="{% url 'ventas:proyectocrear' %}">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <div class="title">Proyectos</div>
+        <div class="meta">Gestionar Proyectos</div>
+      </a>
+
+      <a class="tile" role="button" aria-label="Crear Pedido" href="{% url 'ventas:contactocrear' %}">
+        <div class="icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+        </div>
+        <div class="title">Crear Contacto</div>
+        <div class="meta">Gestionar Contactos</div>
       </a>
 
     </section>

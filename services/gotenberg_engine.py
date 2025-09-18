@@ -7,10 +7,12 @@ if not GOTENBERG_URL:
 def html_to_pdf_bytes_gotenberg(html: str) -> bytes:
     files = {"files": ("index.html", html.encode("utf-8"), "text/html")}
     data = {
-        "marginTop": "10mm", "marginRight": "10mm",
-        "marginBottom": "10mm", "marginLeft": "10mm",
+        "marginTop": "2mm", "marginRight": "2mm",
+        "marginBottom": "2mm", "marginLeft": "2mm",
         "printBackground": "true",
-        "paperWidth": "8.27", "paperHeight": "11.69"  # A4 en pulgadas
+        "paperWidth": "8.27", "paperHeight": "11.69",  # A4 en pulgadas
+        "scale": "0.93",  # Reducir escala para que quepa mejor
+        "preferCSSPageSize": "false"
     }
     r = requests.post(f"{GOTENBERG_URL}/forms/chromium/convert/html",
                       files=files, data=data, timeout=60)
