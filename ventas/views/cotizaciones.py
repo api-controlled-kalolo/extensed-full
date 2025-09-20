@@ -1,6 +1,8 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_http_methods
+from django.utils import timezone
 from ventas.forms import CotizacionForm, DetallesCotizacionesInLineFormSet
 from django.template import Template, Context
 from services.gotenberg_engine import html_to_pdf_bytes_gotenberg 
@@ -29,8 +31,7 @@ def generar_cotizacion(request):
         if detalles.is_valid():
           detalles.save()
           
-          # Calculo para tener la suma Total de Presupuesto
-          total_general = sum(detalle.precio_total for detalle in new_cotizacion.detalles.all())
+          # Usar las propiedades calculadas del modelo en lugar de cálculo manual
           
           plantilla_html = r"""
           <!DOCTYPE html>
@@ -229,13 +230,25 @@ def generar_cotizacion(request):
                 }
                 
                 /* MODIFICACIÓN 1: Total general optimizado */
+                .subtotal-row {
+                    background: #f8f9fa !important;
+                    color: #495057 !important;
+                    font-weight: 600 !important;
+                }
+                
+                .igv-row {
+                    background: #e9ecef !important;
+                    color: #495057 !important;
+                    font-weight: 600 !important;
+                }
+                
                 .total-row {
                     background: linear-gradient(135deg, #34495e 0%, #2c3e50 100%) !important;
                     color: white !important;
                     font-weight: 700 !important;
                 }
                 
-                .total-row td {
+                .subtotal-row td, .igv-row td, .total-row td {
                     border-bottom: none !important;
                     padding: 12px 8px !important;
                     font-size: 11px !important;
@@ -562,14 +575,34 @@ def generar_cotizacion(request):
                                 <td class="description-cell">{{ detalle.descripcion }}</td>
                                 <td>{{ detalle.unidad }}</td>
                                 <td>{{ detalle.cantidad }}</td>
-                                <td class="price-cell">$ {{ detalle.precio_unitario|floatformat:2 }}</td>
-                                <td class="price-cell">$ {{ detalle.precio_total|floatformat:2 }}</td>
+                                <td class="price-cell">
+                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ detalle.precio_unitario|floatformat:2 }}
+                                </td>
+                                <td class="price-cell">
+                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ detalle.precio_total|floatformat:2 }}
+                                </td>
                             </tr>
                             {% endfor %}
-                            <!-- Fila del Total General - MODIFICADO -->
+                            <!-- Filas de totales mejoradas -->
+                            <tr class="subtotal-row">
+                                <td colspan="5" class="total-label-cell">SUBTOTAL</td>
+                                <td class="total-amount-cell">
+                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ subtotal|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% if cotizacion.incluye_igv %}
+                            <tr class="igv-row">
+                                <td colspan="5" class="total-label-cell">IGV (18%)</td>
+                                <td class="total-amount-cell">
+                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ igv_monto|floatformat:2 }}
+                                </td>
+                            </tr>
+                            {% endif %}
                             <tr class="total-row">
                                 <td colspan="5" class="total-label-cell">TOTAL GENERAL</td>
-                                <td class="total-amount-cell">$ {{ total_general|floatformat:2 }}</td>
+                                <td class="total-amount-cell">
+                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ total_con_igv|floatformat:2 }}
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -603,11 +636,15 @@ def generar_cotizacion(request):
                             <div class="terms-card">
                                 <div class="terms-content">
                                     <div class="terms-label">Validez de la Oferta</div>
-                                    <div class="terms-value">15 DÍAS</div>
+                                    <div class="terms-value">{{ cotizacion.validez_oferta|default:"30 días" }}</div>
                                 </div>
                                 <div class="terms-content">
                                     <div class="terms-label">Forma de Pago</div>
-                                    <div class="terms-value">AL CONTADO</div>
+                                    <div class="terms-value">{{ cotizacion.forma_pago|default:"AL CONTADO" }}</div>
+                                </div>
+                                <div class="terms-content">
+                                    <div class="terms-label">Moneda</div>
+                                    <div class="terms-value">{{ cotizacion.moneda|default:"Soles" }}</div>
                                 </div>
                             </div>
                         </div>
@@ -616,7 +653,14 @@ def generar_cotizacion(request):
                 
                 <!-- Nota de Tipo de Cambio -->
                 <div class="exchange-note">
-                    Para la conversión a soles, emplear el tipo de cambio venta de S/ 3.70 vigente en el Banco de Crédito del Perú en la fecha de la presente cotización.
+                    {% if cotizacion.moneda == 'Dolares' %}
+                        Para la conversión a soles, se empleará el tipo de cambio de S/ {{ tipo_cambio_efectivo|floatformat:3 }} (BCR + margen) vigente en la fecha de la cotización.
+                    {% else %}
+                        Precios expresados en {{ cotizacion.moneda|default:"Soles" }}.
+                        {% if cotizacion.moneda == 'Soles' and tipo_cambio_efectivo %}
+                            Tipo de cambio referencial USD: S/ {{ tipo_cambio_efectivo|floatformat:3 }}
+                        {% endif %}
+                    {% endif %}
                 </div>
                 
                 <!-- Certificación -->
@@ -632,7 +676,12 @@ def generar_cotizacion(request):
           html_rendered = Template(plantilla_html).render(Context({
             'cotizacion': new_cotizacion,
             'detalles': new_cotizacion.detalles.all(),
-            'total_general': total_general,
+            'subtotal': new_cotizacion.subtotal,
+            'igv_monto': new_cotizacion.igv_monto,
+            'total_con_igv': new_cotizacion.total_con_igv,
+            'total_soles': new_cotizacion.total_soles,
+            'total_dolares': new_cotizacion.total_dolares,
+            'tipo_cambio_efectivo': new_cotizacion.tipo_cambio_efectivo,
             'user': request.user
           }))
           
@@ -658,7 +707,7 @@ def generar_cotizacion(request):
             for c in f.errors.keys():
               campos_con_error.append(c)
               mensaje_error = "Hay errores en la tabla de detalles: " + ", ".join(set(campos_con_error)) if campos_con_error else "Hay errores en la tabla de detalles."
-              return render(request, 'cotuzaciones/crear_cotizacion.html', {
+              return render(request, 'cotizaciones/crear_cotizacion.html', {
                 'form': form,                 # mantenemos datos del aingresados
                 'detalles': detalles,
                 'error': mensaje_error,
@@ -709,21 +758,25 @@ def cotizaciones_list(request):
     Listado de cotizaciones con búsqueda, filtros por cliente y rango de fechas,
     ordenamiento por columnas y paginación.
     """
-    # Base Query
-    qs = Cotizacion.objects.select_related('cliente', 'contacto')
+    # Base Query con relaciones optimizadas
+    qs = Cotizacion.objects.select_related(
+        'cliente__proyecto_principal', 
+        'contacto'
+    ).prefetch_related('detalles')
 
     # --- Filtros ---
     q = (request.GET.get('q') or '').strip()
     cliente_id = (request.GET.get('cliente') or '').strip()
     desde = (request.GET.get('desde') or '').strip()
     hasta = (request.GET.get('hasta') or '').strip()
+    estado = (request.GET.get('estado') or '').strip()
 
     if q:
         qs = qs.filter(
             Q(numero_cotizacion__icontains=q) |
             Q(nombre_cotizacion__icontains=q) |
-            Q(ruc__icontains=q) |
-            Q(razon_social__icontains=q) |
+            Q(cliente__ruc__icontains=q) |
+            Q(cliente__razon_social__icontains=q) |
             Q(correo__icontains=q) |
             Q(celular__icontains=q) |
             Q(direccion__icontains=q)
@@ -736,6 +789,9 @@ def cotizaciones_list(request):
         qs = qs.filter(fecha_creacion__gte=desde)
     if hasta:
         qs = qs.filter(fecha_creacion__lte=hasta)
+        
+    if estado:
+        qs = qs.filter(estado_coti=estado)
 
     # --- Ordenamiento (whitelist) ---
     order = (request.GET.get('order') or '-fecha_creacion').strip()
@@ -746,11 +802,17 @@ def cotizaciones_list(request):
         '-numero_cotizacion': '-numero_cotizacion',
         'nombre_cotizacion': 'nombre_cotizacion',
         '-nombre_cotizacion': '-nombre_cotizacion',
+        'cliente': 'cliente__razon_social',
+        '-cliente': '-cliente__razon_social',
+        'estado_coti': 'estado_coti',
+        '-estado_coti': '-estado_coti',
+        'fecha_actualizacion_estado': 'fecha_actualizacion_estado',
+        '-fecha_actualizacion_estado': '-fecha_actualizacion_estado',
     }
     qs = qs.order_by(allowed.get(order, '-fecha_creacion'))
 
     # --- Paginación ---
-    paginator = Paginator(qs, 12)  # 12 por página
+    paginator = Paginator(qs, 15)  # 15 por página para mejor visualización
     page_number = request.GET.get('page') or 1
     page_obj = paginator.get_page(page_number)
 
@@ -761,11 +823,19 @@ def cotizaciones_list(request):
         from urllib.parse import urlencode
         return urlencode(params)
 
-    # Para el filtro de clientes (si tienes muchos, podrías usar select2 en el futuro)
+    # Para el filtro de clientes
     try:
-        clientes = Cliente.objects.all().order_by('id')
+        clientes = Cliente.objects.select_related('proyecto_principal').order_by('razon_social')
     except Exception:
         clientes = []
+
+    # Estados disponibles para el filtro
+    estados_choices = [
+        ('', 'Todos los estados'),
+        ('En Negociación', 'En Negociación'),
+        ('Ganado', 'Ganado'),
+        ('Perdida', 'Perdida'),
+    ]
 
     ctx = {
         'page_obj': page_obj,
@@ -774,12 +844,50 @@ def cotizaciones_list(request):
         'cliente_id': cliente_id,
         'desde': desde,
         'hasta': hasta,
+        'estado': estado,
         'order': order,
         'clientes': clientes,
+        'estados_choices': estados_choices,
         'query_without_page': query_without('page'),
         'query_without_order': query_without('order'),
     }
     return render(request, 'cotizaciones/cotizaciones_list.html', ctx)
+
+
+@login_required
+@require_http_methods(["POST"])
+def cambiar_estado_cotizacion(request, pk):
+    """
+    Vista AJAX para cambiar el estado de una cotización.
+    """
+    try:
+        cotizacion = get_object_or_404(Cotizacion, pk=pk)
+        nuevo_estado = request.POST.get('estado')
+        
+        # Validar estado
+        estados_validos = ['En Negociación', 'Ganado', 'Perdida']
+        if nuevo_estado not in estados_validos:
+            return JsonResponse({
+                'success': False, 
+                'error': 'Estado no válido'
+            }, status=400)
+        
+        # Actualizar estado
+        cotizacion.estado_coti = nuevo_estado
+        cotizacion.fecha_actualizacion_estado = timezone.now()
+        cotizacion.save(update_fields=['estado_coti', 'fecha_actualizacion_estado'])
+        
+        return JsonResponse({
+            'success': True,
+            'nuevo_estado': nuevo_estado,
+            'fecha_actualizacion': cotizacion.fecha_actualizacion_estado.strftime('%d/%m/%Y %H:%M')
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=500)
 
 from datetime import date, timedelta
 from decimal import Decimal

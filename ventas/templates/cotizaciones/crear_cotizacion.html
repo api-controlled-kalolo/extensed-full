@@ -79,6 +79,20 @@
     }
     .form-control::placeholder{color:var(--medium-gray)}
     .form-control:focus,.form-select:focus,textarea.form-control:focus{outline:2px solid var(--primary-blue); outline-offset:2px; background:rgba(37,99,235,.08)}
+    
+    /* Checkbox styling */
+    .form-check-input{
+      width:18px; height:18px; margin-right:8px; border-radius:4px;
+      border:2px solid var(--glass-border); background:rgba(255,255,255,.06);
+      cursor:pointer; transition:var(--transition);
+    }
+    .form-check-input:checked{
+      background:var(--primary-blue); border-color:var(--primary-blue);
+    }
+    .form-check-input:focus{
+      outline:2px solid var(--primary-blue); outline-offset:2px;
+    }
+    
     .errorlist{margin:.3rem 0 0; padding:0; list-style:none; color:#fecaca; font-size:.85rem}
 
     /* Tabla de partidas */
@@ -220,6 +234,32 @@
           <div class="field">
             <label for="{{ form.celular.id_for_label }}">Celular del cliente</label>
             {{ form.celular }} {{ form.celular.errors }}
+          </div>
+          
+          <div class="field">
+            <label for="{{ form.forma_pago.id_for_label }}">Forma de Pago</label>
+            {{ form.forma_pago }} {{ form.forma_pago.errors }}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.validez_oferta.id_for_label }}">Validez de la Oferta</label>
+            {{ form.validez_oferta }} {{ form.validez_oferta.errors }}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.moneda.id_for_label }}">Moneda</label>
+            {{ form.moneda }} {{ form.moneda.errors }}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.incluye_igv.id_for_label }}">¿Incluye IGV?</label>
+            {{ form.incluye_igv }} {{ form.incluye_igv.errors }}
+            <div class="help">Marcar si los precios incluyen IGV (18%)</div>
+          </div>
+
+          <div class="field">
+            <label for="{{ form.estado_coti.id_for_label }}">Estado de la Cotización</label>
+            {{ form.estado_coti }} {{ form.estado_coti.errors }}
           </div>
 
           <!-- Los datos del contacto se eligen mediante el select 'contacto' -->

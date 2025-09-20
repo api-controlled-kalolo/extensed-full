@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from datetime import datetime
+from services.bcr_service import obtener_tipo_cambio_bcr
 
 # Create your models here.
 # -- ACTAS --
@@ -218,21 +219,117 @@ class Cotizacion(models.Model):
     celular = models.CharField(max_length=9, blank=False, null=False) # Lista desplegable
     direccion = models.CharField(max_length=50, blank=False, null=False) # Lista desplegable
     correo = models.EmailField(blank=False) # Lista desplegable
+    forma_pago = models.CharField(max_length=20, choices=[('','-'),('AL CONTADO', 'AL CONTADO'), ('30 DIAS', '30 DIAS'), ('60 DIAS', '60 DIAS')], blank=True)
+    validez_oferta = models.CharField(max_length=20, choices=[('','-'),('15 dias','15 dias'),('21 dias', '21 dias'),('30 dias', '30 dias'),('45 dias', '45 dias'), ('60 dias', '60 dias')], blank=False)
+    moneda = models.CharField(max_length=10, choices=[('','-'),('Soles', 'Soles'), ('Dolares','Dolares')], blank=False)
+    tipo_cambio = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True, help_text="Tipo de cambio USD a PEN (se actualiza automáticamente desde BCR + 0.10)")
+    incluye_igv = models.BooleanField(default=True, help_text="Si la cotización incluye IGV (18%)")
     alcance_total_oferta = models.TextField()
-    
+    estado_coti = models.CharField(max_length=20, choices=[('', '-'), ('En Negociación', 'En Negociación'),('Ganado', 'Ganado'), ('Perdida', 'Perdida')], default='En Negociación')
+    fecha_actualizacion_estado = models.DateTimeField(auto_now=True)
     #Relaciones
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='cotizaciones',)
     contacto = models.ForeignKey(Contacto, on_delete=models.CASCADE, related_name='cotizaciones_contacto', )
     
+    def obtener_tipo_cambio_actual(self):
+        """
+        Obtiene el tipo de cambio actual del BCR con margen de seguridad
+        """
+        try:
+            return obtener_tipo_cambio_bcr()
+        except Exception:
+            return Decimal("3.760")  # Fallback seguro
+    
+    def actualizar_tipo_cambio(self):
+        """
+        Actualiza el tipo de cambio con el valor actual del BCR
+        """
+        try:
+            self.tipo_cambio = self.obtener_tipo_cambio_actual()
+            return self.tipo_cambio
+        except Exception:
+            # Si falla, mantener el tipo de cambio actual o usar fallback
+            if not self.tipo_cambio:
+                self.tipo_cambio = Decimal("3.760")
+            return self.tipo_cambio
+    
+    @property
+    def tipo_cambio_efectivo(self):
+        """
+        Retorna el tipo de cambio a usar (actualizado o por defecto)
+        """
+        if not self.tipo_cambio:
+            # Si no hay tipo de cambio guardado, obtener uno nuevo
+            try:
+                return self.obtener_tipo_cambio_actual()
+            except Exception:
+                # Si falla la obtención del tipo de cambio, usar un valor por defecto
+                return Decimal("3.760")  # Tipo de cambio por defecto + margen
+        return self.tipo_cambio
+    
+    @property
+    def subtotal(self):
+        """Subtotal de todos los detalles (sin IGV)"""
+        total = Decimal("0.00")
+        for detalle in self.detalles.all():
+            total += detalle.precio_total
+        return total.quantize(Decimal("0.01"))
+    
+    @property
+    def igv_monto(self):
+        """Monto del IGV (18%)"""
+        if self.incluye_igv:
+            igv = self.subtotal * Decimal("0.18")
+            return igv.quantize(Decimal("0.01"))
+        return Decimal("0.00")
+    
+    @property 
+    def total_con_igv(self):
+        """Total con IGV incluido"""
+        if self.incluye_igv:
+            return (self.subtotal + self.igv_monto).quantize(Decimal("0.01"))
+        return self.subtotal
+    
+    @property
+    def total_soles(self):
+        """Total siempre en soles (convierte si está en dólares)"""
+        total = self.total_con_igv
+        if self.moneda == 'Dolares':
+            tipo_cambio = Decimal(str(self.tipo_cambio_efectivo))
+            total_convertido = total * tipo_cambio
+            return total_convertido.quantize(Decimal("0.01"))
+        return total
+    
+    @property
+    def total_dolares(self):
+        """Total siempre en dólares (convierte si está en soles)"""
+        total = self.total_con_igv
+        if self.moneda == 'Soles':
+            tipo_cambio = Decimal(str(self.tipo_cambio_efectivo))
+            total_convertido = total / tipo_cambio
+            return total_convertido.quantize(Decimal("0.01"))
+        return total
+    
+    def __str__(self):
+        return f"{self.numero_cotizacion} - {self.nombre_cotizacion}"
+    
     
     def save(self, *args, **kwargs):
+        # Actualizar tipo de cambio al crear una nueva cotización
+        if not self.pk:
+            # Nueva cotización: obtener tipo de cambio actual del BCR
+            if not self.tipo_cambio:
+                self.tipo_cambio = self.obtener_tipo_cambio_actual()
+        
+        # Generar número de cotización y datos de empresa
         if not self.pk and not self.numero_cotizacion:
             super().save(*args, **kwargs)
             self.numero_cotizacion = f"COT00{self.pk:02d}{datetime.now().year}"
             self.ruc = f"20607494283"
             self.razon_social = f"SVC INGENIEROS S.A.C"
             self.direccion = f"Comas, Lima, Lima"
-            return super().save(update_fields=["numero_cotizacion", "ruc", "razon_social", "direccion"])
+            return super().save(update_fields=["numero_cotizacion", "ruc", "razon_social", "direccion", "tipo_cambio"])
+        
         return super().save(*args, **kwargs)
     
 class Detalles_Cotizacion(models.Model):
@@ -244,7 +341,8 @@ class Detalles_Cotizacion(models.Model):
 
     @property
     def precio_total(self):
-        return (self.cantidad * self.precio_unitario).quantize(Decimal("0.01"))
+        total = Decimal(str(self.cantidad)) * self.precio_unitario
+        return total.quantize(Decimal("0.01"))
     
     def __str__(self):
-        return f"{self.producto} x {self.cantidad} = {self.precio_total}"
+        return f"{self.descripcion} x {self.cantidad} = {self.precio_total}"

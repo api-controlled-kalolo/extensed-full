@@ -89,14 +89,49 @@ AccionesActaLineFormSet = inlineformset_factory(
 class CotizacionForm(forms.ModelForm):
     class Meta:
         model = Cotizacion
-        # Colocamos todo menos lo campos que se van a completar en automático:
-        exclude = ['numero_cotizacion', 'ruc', 'razon_social', 'fecha_creacion']
+        # Colocamos todo menos los campos que se van a completar automáticamente:
+        exclude = [
+            'numero_cotizacion', 'ruc', 'razon_social', 'fecha_creacion', 
+            'tipo_cambio', 'fecha_actualizacion_estado'
+        ]
         widgets = {
-            'nombre_cotizacion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la cotización'}),
-            'celular': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ej: 912345678', 'maxlength': '9'}),
-            'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección del cliente'}),
-            'correo': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': 'ejemplo@correo.com'}),
-            'alcance_total_oferta': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Detalle del alcance...', 'rows': 4}),
+            'nombre_cotizacion': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Nombre de la cotización'
+            }),
+            'celular': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Ej: 912345678', 
+                'maxlength': '9'
+            }),
+            'direccion': forms.TextInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Dirección del cliente'
+            }),
+            'correo': forms.EmailInput(attrs={
+                'class': 'form-control', 
+                'placeholder': 'ejemplo@correo.com'
+            }),
+            'forma_pago': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'validez_oferta': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'moneda': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'incluye_igv': forms.CheckboxInput(attrs={
+                'class': 'form-check-input'
+            }),
+            'estado_coti': forms.Select(attrs={
+                'class': 'form-select'
+            }),
+            'alcance_total_oferta': forms.Textarea(attrs={
+                'class': 'form-control', 
+                'placeholder': 'Detalle del alcance...', 
+                'rows': 4
+            }),
         }
 
     # Mostrar cliente/contacto como selects (FKs en el modelo)
@@ -105,6 +140,15 @@ class CotizacionForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        # Configurar labels personalizados
+        self.fields['forma_pago'].label = 'Forma de Pago'
+        self.fields['validez_oferta'].label = 'Validez de la Oferta'
+        self.fields['moneda'].label = 'Moneda'
+        self.fields['incluye_igv'].label = '¿Incluye IGV?'
+        self.fields['estado_coti'].label = 'Estado de la Cotización'
+        self.fields['alcance_total_oferta'].label = 'Alcance Total de la Oferta'
+        
         # siempre todos los clientes
         self.fields['cliente'].queryset = Cliente.objects.all().order_by('razon_social')
 
@@ -128,7 +172,7 @@ class CotizacionForm(forms.ModelForm):
                 cliente_principal_id=cliente_selected
             ).order_by('nombres', 'apellidos')
 
-        # labels
+        # labels para selects
         self.fields['cliente'].label_from_instance = lambda obj: f"{obj.razon_social} ({obj.ruc})"
         self.fields['contacto'].label_from_instance = lambda obj: f"{obj.nombres} {obj.apellidos} - {obj.cargo}"
 
