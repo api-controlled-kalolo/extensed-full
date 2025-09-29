@@ -54,10 +54,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     
     'whitenoise.runserver_nostatic',
+    'widget_tweaks',  # Para el manejo de widgets en templates
     
     # APPS
     'ventas',
-    'login'
+    'login',
+    'rrhh'
 ]
 
 MIDDLEWARE = [

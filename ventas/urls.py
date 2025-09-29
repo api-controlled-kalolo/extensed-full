@@ -1,7 +1,7 @@
 from django.urls import path
 from ventas import views
 # filepath: ventas/urls.py
-from ventas.views import create_acta, gestion_actas, ventas_modulo, generar_cotizacion, menu_cotizaciones, crear_unidad_negocio, crear_proyecto, crear_cliente, crear_contacto, cotizaciones_dashboard, contactos_por_cliente_api, cambiar_estado_cotizacion
+from ventas.views import create_acta, gestion_actas, ventas_modulo, generar_cotizacion, menu_cotizaciones, crear_unidad_negocio, crear_proyecto, crear_cliente, crear_contacto, cotizaciones_dashboard, contactos_por_cliente_api, cambiar_estado_cotizacion, visualizar_pdf_cotizacion, detalle_cotizacion
 
 app_name = 'ventas'
 
@@ -19,6 +19,8 @@ urlpatterns = [
     path('cotizaciones/', views.cotizaciones_list, name='cotizaciones_list'),
     path('cotizaciones/dashboard/', views.cotizaciones_dashboard, name='cotizaciones_dashboard'),
     path('cotizaciones/<int:pk>/cambiar-estado/', views.cambiar_estado_cotizacion, name='cambiar_estado_cotizacion'),
+    path('cotizaciones/<int:pk>/pdf/', views.visualizar_pdf_cotizacion, name='visualizar_pdf_cotizacion'),
+    path('cotizaciones/<int:pk>/detalle/', views.detalle_cotizacion, name='detalle_cotizacion'),
     
     # API: contactos por cliente
     path('api/clientes/<int:cliente_id>/contactos', contactos_por_cliente_api, name='api_contactos_por_cliente'),

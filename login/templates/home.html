@@ -324,6 +324,9 @@
         .module-card:nth-child(1) { animation-delay: 0.6s; }
         .module-card:nth-child(2) { animation-delay: 0.8s; }
         .module-card:nth-child(3) { animation-delay: 1s; }
+        .module-card:nth-child(4) { animation-delay: 1.2s; }
+        .module-card:nth-child(5) { animation-delay: 1.4s; }
+        .module-card:nth-child(6) { animation-delay: 1.6s; }
 
         .module-card::before {
             content: '';
@@ -403,6 +406,18 @@
 
         .module-icon.logistics {
             background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+        }
+
+        .module-icon.hr {
+            background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+        }
+
+        .module-icon.operations {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        }
+
+        .module-icon.fleet {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
         }
 
         .module-title-group {
@@ -739,7 +754,7 @@
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-header">
-                <h2 class="main-title">Gestión Operaciones ERP</h2>
+                <h2 class="main-title">Sistema integrado SVC</h2>
                 <p class="main-subtitle">
                     Accede a los módulos especializados para gestionar integralmente todas las gestiones correspondientes.
                 </p>
@@ -747,7 +762,7 @@
 
             <div class="modules-container">
                 <div class="modules-grid">
-                    <!-- Ventas Module -->
+                    <!-- Comercial Module -->
                     <div class="module-card" tabindex="0" role="button" aria-label="Acceder al módulo de Ventas">
                         <div class="module-header">
                             <div class="module-icon sales">
@@ -756,7 +771,7 @@
                                 </svg>
                             </div>
                             <div class="module-title-group">
-                                <h3 class="module-title">Ventas</h3>
+                                <h3 class="module-title">Comercial</h3>
                                 <div class="module-category">Gestión Comercial</div>
                             </div>
                         </div>
@@ -853,14 +868,14 @@
 
                         <div class="module-action">
                             <a href="#" class="access-button">
-                                <span>Acceder al Módulo</span>
+                                <span>Acceder al Modulo</span>
                                 <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
                                 </svg>
                             </a>
-                            <div class="module-status-null">
-                                <div class="status-null"></div>
-                                <span>Inactivo</span>
+                            <div class="module-status">
+                                <div class="status-dot"></div>
+                                <span>Activo</span>
                             </div>
                         </div>
                     </div>
@@ -907,6 +922,188 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
                                 </svg>
                                 <span class="feature-text">Trazabilidad</span>
+                            </div>
+                        </div>
+
+                        <div class="module-action">
+                            <a href="#" class="access-button">
+                                <span>Acceder al Módulo</span>
+                                <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                </svg>
+                            </a>
+                            <div class="module-status-null">
+                                <div class="status-null"></div>
+                                <span>Inactivo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recursos Humanos Modulo -->
+                    <div class="module-card" tabindex="0" role="button" aria-label="Acceder al módulo de Recursos Humanos">
+                        <div class="module-header">
+                            <div class="module-icon hr">
+                                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                </svg>
+                            </div>
+                            <div class="module-title-group">
+                                <h3 class="module-title">Recursos Humanos</h3>
+                                <div class="module-category">Gestión de Personal</div>
+                            </div>
+                        </div>
+
+                        <p class="module-description">
+                            Sistema integral para la gestión del capital humano, desde el reclutamiento y selección hasta la administración de nóminas, evaluaciones de desempeño y desarrollo profesional.
+                        </p>
+
+                        <div class="module-features">
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                </svg>
+                                <span class="feature-text">Personal</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                <span class="feature-text">Nóminas</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="feature-text">Asistencias</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/>
+                                </svg>
+                                <span class="feature-text">Evaluaciones</span>
+                            </div>
+                        </div>
+
+                        <div class="module-action">
+                            <a href="{% url 'rrhh:dashboard' %}" class="access-button">
+                                <span>Explorar módulo</span>
+                                <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                </svg>
+                            </a>
+                            <div class="module-status">
+                                <div class="status-dot"></div>
+                                <span>Activo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Operaciones Module -->
+                    <div class="module-card" tabindex="0" role="button" aria-label="Acceder al módulo de Operaciones">
+                        <div class="module-header">
+                            <div class="module-icon operations">
+                                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                            </div>
+                            <div class="module-title-group">
+                                <h3 class="module-title">Operaciones</h3>
+                                <div class="module-category">Gestión Operativa</div>
+                            </div>
+                        </div>
+
+                        <p class="module-description">
+                            Centro de control operativo para monitorear, coordinar y optimizar todos los procesos empresariales, desde la planificación estratégica hasta la ejecución de operaciones diarias.
+                        </p>
+
+                        <div class="module-features">
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                                </svg>
+                                <span class="feature-text">Monitoreo</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="feature-text">Planificación</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                </svg>
+                                <span class="feature-text">Procesos</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"/>
+                                </svg>
+                                <span class="feature-text">KPIs</span>
+                            </div>
+                        </div>
+
+                        <div class="module-action">
+                            <a href="#" class="access-button">
+                                <span>Acceder al Módulo</span>
+                                <svg class="button-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                                </svg>
+                            </a>
+                            <div class="module-status-null">
+                                <div class="status-null"></div>
+                                <span>Inactivo</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gestión de Flota Module -->
+                    <div class="module-card" tabindex="0" role="button" aria-label="Acceder al módulo de Gestión de Flota">
+                        <div class="module-header">
+                            <div class="module-icon fleet">
+                                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM21 17a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 6l2 2 4-4"/>
+                                </svg>
+                            </div>
+                            <div class="module-title-group">
+                                <h3 class="module-title">Gestión de Flota</h3>
+                                <div class="module-category">Control Vehicular</div>
+                            </div>
+                        </div>
+
+                        <p class="module-description">
+                            Sistema especializado para la administración integral de flotas vehiculares, incluyendo mantenimientos, rutas, combustible, seguros y optimización de recursos de transporte.
+                        </p>
+
+                        <div class="module-features">
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="feature-text">Rastreo GPS</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                <span class="feature-text">Mantenimiento</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                <span class="feature-text">Combustible</span>
+                            </div>
+                            <div class="feature-item">
+                                <svg class="feature-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                </svg>
+                                <span class="feature-text">Documentación</span>
                             </div>
                         </div>
 

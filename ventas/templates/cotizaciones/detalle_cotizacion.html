@@ -1,0 +1,528 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>ERP · Detalles de Cotización</title>
+
+  <!-- Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root{
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --primary-blue:#2563eb; --secondary-blue:#1d4ed8; --light-blue:#3b82f6; --accent-blue:#60a5fa;
+      --pure-white:#ffffff; --light-gray:#94a3b8; --medium-gray:#64748b; --dark-gray:#475569;
+      --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+      --shadow-soft:0 4px 20px rgba(0,0,0,.15); --shadow-medium:0 8px 30px rgba(0,0,0,.22);
+      --gradient-blue:linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+      --transition:all .3s cubic-bezier(.4,0,.2,1);
+    }
+
+    *{margin:0; padding:0; box-sizing:border-box}
+    body{
+      font-family:'Inter', system-ui, -apple-system, sans-serif; background:linear-gradient(135deg, var(--primary-dark), var(--secondary-dark));
+      color:var(--pure-white); line-height:1.6; min-height:100vh;
+    }
+
+    /* Header */
+    .header{display:flex; align-items:center; justify-content:space-between; padding:16px 24px; background:var(--glass-bg); border-bottom:1px solid var(--glass-border); backdrop-filter:blur(25px)}
+    .breadcrumb{font-size:.9rem; color:var(--light-gray); font-weight:500}
+    .nav-icons{display:flex; gap:8px}
+    .btn-icon{display:inline-flex; align-items:center; justify-content:center; width:40px; height:40px; border-radius:10px; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.15); color:var(--pure-white); text-decoration:none; transition:var(--transition)}
+    .btn-icon:hover{background:rgba(255,255,255,.15); transform:translateY(-1px)}
+
+    /* Main */
+    main{padding:20px 24px; max-width:1200px; margin:0 auto}
+    .page-head{margin-bottom:24px}
+    .title{margin:0; font-size:1.8rem; font-weight:800}
+    .desc{margin:4px 0 0; color:var(--light-gray)}
+
+    /* Tarjetas */
+    .card{background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:20px; padding:22px; backdrop-filter:blur(25px); box-shadow:var(--shadow-soft)}
+    .card + .card{margin-top:16px}
+
+    /* Formularios */
+    .form-grid{display:grid; grid-template-columns:repeat(2,1fr); gap:16px}
+    .form-grid-3{display:grid; grid-template-columns:2fr 1fr 1fr; gap:12px}
+    .field{margin-bottom:16px}
+    .field label{display:block; font-weight:700; margin-bottom:6px; color:var(--pure-white)}
+    .form-control, .form-select, .form-textarea{
+      width:100%; padding:.8rem; border-radius:12px; border:1px solid var(--glass-border);
+      background:rgba(255,255,255,.06); color:var(--pure-white); transition:var(--transition); font-size:.95rem;
+    }
+    .form-control::placeholder{color:var(--medium-gray)}
+    .form-control:focus, .form-select:focus, .form-textarea:focus{outline:2px solid var(--primary-blue); outline-offset:2px; border-color:var(--primary-blue)}
+    .form-textarea{min-height:120px; resize:vertical}
+    .help{font-size:.85rem; color:var(--accent-blue); margin-top:4px}
+
+    /* Tabla de detalles */
+    .table-section{margin-top:24px}
+    .table-wrap{overflow-x:auto; border-radius:12px; border:1px solid var(--glass-border)}
+    table{width:100%; border-collapse:separate; border-spacing:0}
+    thead th{background:var(--accent-dark); color:var(--pure-white); padding:12px; text-align:left; font-weight:700; font-size:.9rem}
+    tbody td{padding:10px 12px; border-bottom:1px solid var(--glass-border)}
+    tbody tr{background:rgba(255,255,255,.04)}
+    tbody tr:hover{background:rgba(255,255,255,.08)}
+    .total-display{background:rgba(255,255,255,.1); border:1px solid var(--glass-border); border-radius:8px; padding:6px 8px; text-align:right; color:var(--pure-white)}
+
+    /* Botones */
+    .btn{display:inline-flex; align-items:center; gap:8px; padding:.8rem 1.2rem; border-radius:12px; font-weight:600; text-decoration:none; transition:var(--transition); border:none; cursor:pointer; font-size:.95rem}
+    .btn-primary{background:var(--gradient-blue); color:var(--pure-white)}
+    .btn-primary:hover{transform:translateY(-2px); box-shadow:var(--shadow-medium)}
+    .btn-secondary{background:rgba(255,255,255,.1); border:1px solid var(--glass-border); color:var(--pure-white)}
+    .btn-secondary:hover{background:rgba(255,255,255,.15)}
+    .btn-danger{background:linear-gradient(135deg, #dc2626, #b91c1c); color:var(--pure-white)}
+    .btn-success{background:linear-gradient(135deg, #059669, #047857); color:var(--pure-white)}
+
+    .btn-actions{display:flex; gap:12px; margin-top:24px; justify-content:flex-end}
+
+    /* Resumen totales */
+    .totals-card{background:var(--accent-dark); border:1px solid var(--glass-border); border-radius:16px; padding:20px; margin-top:16px}
+    .totals-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px; text-align:center}
+    .total-item{background:rgba(255,255,255,.1); border-radius:12px; padding:16px}
+    .total-label{font-size:.9rem; color:var(--light-gray); margin-bottom:4px}
+    .total-value{font-size:1.2rem; font-weight:700; color:var(--pure-white)}
+
+    /* Responsive */
+    @media (max-width:768px){
+      .form-grid{grid-template-columns:1fr}
+      .form-grid-3{grid-template-columns:1fr}
+      .totals-grid{grid-template-columns:1fr}
+      .btn-actions{flex-direction:column}
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="breadcrumb">Ventas / Cotizaciones / Detalles</div>
+    <nav class="nav-icons" role="group" aria-label="Navegación rápida">
+      <a class="btn-icon" href="{% url 'ventas:modulo_ventas' %}" title="Inicio" aria-label="Inicio">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 10.5L12 3l9 7.5"></path><path d="M5 11.5v9h4v-6h4v6h4v-9"></path>
+        </svg>
+      </a>
+      <a class="btn-icon" href="{% url 'ventas:cotizaciones_list' %}" title="Lista Cotizaciones" aria-label="Lista de cotizaciones">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M4 4h10l4 4v12H4z"/><path d="M14 4v4h4"/><path d="M8 12h8M8 16h5"/>
+        </svg>
+      </a>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <main>
+    <div class="page-head">
+      <h1 class="title">Detalles de Cotización</h1>
+      <p class="desc">{{ cotizacion.numero_cotizacion }} - {{ cotizacion.nombre_cotizacion }}</p>
+    </div>
+
+    <!-- Mensajes -->
+    {% if messages %}
+      {% for message in messages %}
+        <div class="card" style="background:{% if message.tags == 'success' %}rgba(34,197,94,.16){% elif message.tags == 'error' %}rgba(239,68,68,.16){% else %}rgba(59,130,246,.16){% endif %}; border-color:{% if message.tags == 'success' %}rgba(34,197,94,.35){% elif message.tags == 'error' %}rgba(239,68,68,.35){% else %}rgba(96,165,250,.35){% endif %};">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      
+      <!-- Información General -->
+      <section class="card">
+        <h3 style="margin-bottom:16px; font-size:1.2rem; font-weight:700;">Información General</h3>
+        
+        <div class="form-grid">
+          <div class="field">
+            <label for="{{ form.nombre_cotizacion.id_for_label }}">{{ form.nombre_cotizacion.label }}</label>
+            {{ form.nombre_cotizacion }}
+            {% if form.nombre_cotizacion.help_text %}
+              <div class="help">{{ form.nombre_cotizacion.help_text }}</div>
+            {% endif %}
+            {% if form.nombre_cotizacion.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.nombre_cotizacion.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.cliente.id_for_label }}">{{ form.cliente.label }}</label>
+            {{ form.cliente }}
+            {% if form.cliente.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.cliente.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.contacto.id_for_label }}">{{ form.contacto.label }}</label>
+            {{ form.contacto }}
+            {% if form.contacto.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.contacto.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.correo.id_for_label }}">{{ form.correo.label }}</label>
+            {{ form.correo }}
+            {% if form.correo.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.correo.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.celular.id_for_label }}">{{ form.celular.label }}</label>
+            {{ form.celular }}
+            {% if form.celular.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.celular.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.direccion.id_for_label }}">{{ form.direccion.label }}</label>
+            {{ form.direccion }}
+            {% if form.direccion.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.direccion.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="form-grid-3" style="margin-top:16px;">
+          <div class="field">
+            <label for="{{ form.moneda.id_for_label }}">{{ form.moneda.label }}</label>
+            {{ form.moneda }}
+            {% if form.moneda.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.moneda.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.forma_pago.id_for_label }}">{{ form.forma_pago.label }}</label>
+            {{ form.forma_pago }}
+            {% if form.forma_pago.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.forma_pago.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label for="{{ form.validez_oferta.id_for_label }}">{{ form.validez_oferta.label }}</label>
+            {{ form.validez_oferta }}
+            {% if form.validez_oferta.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.validez_oferta.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr auto; gap:16px; margin-top:16px;">
+          <div class="field">
+            <label for="{{ form.estado_coti.id_for_label }}">{{ form.estado_coti.label }}</label>
+            {{ form.estado_coti }}
+            {% if form.estado_coti.errors %}
+              <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+                {% for error in form.estado_coti.errors %}{{ error }}{% endfor %}
+              </div>
+            {% endif %}
+          </div>
+
+          <div class="field">
+            <label>
+              {{ form.incluye_igv }} {{ form.incluye_igv.label }}
+            </label>
+            {% if form.incluye_igv.help_text %}
+              <div class="help">{{ form.incluye_igv.help_text }}</div>
+            {% endif %}
+          </div>
+        </div>
+      </section>
+
+      <!-- Alcance de la Oferta -->
+      <section class="card">
+        <h3 style="margin-bottom:16px; font-size:1.2rem; font-weight:700;">Alcance de la Oferta</h3>
+        <div class="field">
+          <label for="{{ form.alcance_total_oferta.id_for_label }}">{{ form.alcance_total_oferta.label }}</label>
+          {{ form.alcance_total_oferta }}
+          {% if form.alcance_total_oferta.errors %}
+            <div style="color:#ef4444; font-size:.85rem; margin-top:4px;">
+              {% for error in form.alcance_total_oferta.errors %}{{ error }}{% endfor %}
+            </div>
+          {% endif %}
+        </div>
+      </section>
+
+      <!-- Detalles/Items -->
+      <section class="card table-section">
+        <h3 style="margin-bottom:16px; font-size:1.2rem; font-weight:700;">Detalles de la Cotización</h3>
+        
+        {{ detalles_formset.management_form }}
+        
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th style="width:35%">Descripción</th>
+                <th style="width:15%">Unidad</th>
+                <th style="width:10%">Cantidad</th>
+                <th style="width:15%">Precio Unit.</th>
+                <th style="width:15%">Total</th>
+                <th style="width:10%">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="items-rows">
+              {% for form in detalles_formset %}
+                <tr data-form-index="{{ forloop.counter0 }}">
+                  {% if form.id %}{{ form.id }}{% endif %}
+                  <td>
+                    {{ form.descripcion }}
+                    {% if form.descripcion.errors %}
+                      <div style="color:#ef4444; font-size:.8rem;">
+                        {% for error in form.descripcion.errors %}{{ error }}{% endfor %}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ form.unidad }}
+                    {% if form.unidad.errors %}
+                      <div style="color:#ef4444; font-size:.8rem;">
+                        {% for error in form.unidad.errors %}{{ error }}{% endfor %}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ form.cantidad }}
+                    {% if form.cantidad.errors %}
+                      <div style="color:#ef4444; font-size:.8rem;">
+                        {% for error in form.cantidad.errors %}{{ error }}{% endfor %}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {{ form.precio_unitario }}
+                    {% if form.precio_unitario.errors %}
+                      <div style="color:#ef4444; font-size:.8rem;">
+                        {% for error in form.precio_unitario.errors %}{{ error }}{% endfor %}
+                      </div>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <input type="text" class="total-display" value="0.00" readonly>
+                  </td>
+                  <td>
+                    {% if form.DELETE %}{{ form.DELETE }}{% endif %}
+                    <button type="button" class="btn-icon btn-danger remove-row" title="Eliminar fila" style="background:linear-gradient(135deg, #dc2626, #b91c1c); width:32px; height:32px;">&times;</button>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <div style="margin-top:12px;">
+          <button type="button" id="add-row" class="btn btn-secondary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 5v14M5 12h14"/>
+            </svg>
+            Agregar ítem
+          </button>
+        </div>
+      </section>
+
+      <!-- Resumen de Totales -->
+      <section class="totals-card">
+        <h3 style="margin-bottom:16px; text-align:center; font-size:1.2rem; font-weight:700;">Resumen de Totales</h3>
+        <div class="totals-grid">
+          <div class="total-item">
+            <div class="total-label">Subtotal</div>
+            <div class="total-value" id="subtotal-display">
+              {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ cotizacion.subtotal|floatformat:2 }}
+            </div>
+          </div>
+          <div class="total-item">
+            <div class="total-label">IGV (18%)</div>
+            <div class="total-value" id="igv-display">
+              {% if cotizacion.incluye_igv %}
+                {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ cotizacion.igv_monto|floatformat:2 }}
+              {% else %}
+                No incluye
+              {% endif %}
+            </div>
+          </div>
+          <div class="total-item">
+            <div class="total-label">Total</div>
+            <div class="total-value" id="total-display">
+              {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ cotizacion.total_con_igv|floatformat:2 }}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Botones de Acción -->
+      <div class="btn-actions">
+        <a href="{% url 'ventas:cotizaciones_list' %}" class="btn btn-secondary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Cancelar
+        </a>
+        <button type="submit" class="btn btn-primary">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+            <path d="M17 21v-8H7v8M7 3v5h8"/>
+          </svg>
+          Guardar Cambios
+        </button>
+        <button type="submit" name="generar_pdf" class="btn btn-success">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M12 18v-6"/>
+            <path d="M9 15l3 3 3-3"/>
+          </svg>
+          Guardar y Generar PDF
+        </button>
+      </div>
+    </form>
+  </main>
+
+  <script>
+    // Funcionalidad para agregar/quitar filas del formset
+    let formIndex = {{ detalles_formset.total_form_count }};
+    
+    document.getElementById('add-row').addEventListener('click', function() {
+      const templateRow = `
+        <tr data-form-index="${formIndex}">
+          <td>
+            <input type="text" name="detalles-${formIndex}-descripcion" class="form-control" required>
+          </td>
+          <td>
+            <input type="text" name="detalles-${formIndex}-unidad" class="form-control" required>
+          </td>
+          <td>
+            <input type="number" name="detalles-${formIndex}-cantidad" class="form-control" step="0.01" min="0" required>
+          </td>
+          <td>
+            <input type="number" name="detalles-${formIndex}-precio_unitario" class="form-control" step="0.01" min="0" required>
+          </td>
+          <td>
+            <input type="text" class="total-display" value="0.00" readonly>
+          </td>
+          <td>
+            <button type="button" class="btn-icon btn-danger remove-row" title="Eliminar fila" style="background:linear-gradient(135deg, #dc2626, #b91c1c); width:32px; height:32px;">&times;</button>
+          </td>
+        </tr>
+      `;
+      
+      document.getElementById('items-rows').insertAdjacentHTML('beforeend', templateRow);
+      
+      // Actualizar el total_forms
+      const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
+      formIndex++;
+      totalFormsInput.value = formIndex;
+      
+      updateCalculations();
+    });
+
+    // Eliminar filas
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('remove-row')) {
+        const row = e.target.closest('tr');
+        
+        // Si es una fila existente (tiene checkbox DELETE), marcarlo para eliminación
+        const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+        if (deleteCheckbox) {
+          deleteCheckbox.checked = true;
+          row.style.display = 'none';
+        } else {
+          // Si es una fila nueva, simplemente eliminarla
+          row.remove();
+          // Actualizar el total_forms
+          const totalFormsInput = document.getElementById('id_detalles-TOTAL_FORMS');
+          formIndex--;
+          totalFormsInput.value = formIndex;
+        }
+        
+        updateCalculations();
+      }
+    });
+
+    // Actualizar cálculos cuando cambien cantidad o precio
+    document.addEventListener('input', function(e) {
+      if (e.target.name && (e.target.name.includes('cantidad') || e.target.name.includes('precio_unitario'))) {
+        updateRowTotal(e.target.closest('tr'));
+        updateCalculations();
+      }
+    });
+
+    function updateRowTotal(row) {
+      const cantidadInput = row.querySelector('input[name$="-cantidad"]');
+      const precioInput = row.querySelector('input[name$="-precio_unitario"]');
+      const totalDisplay = row.querySelector('.total-display');
+      
+      if (cantidadInput && precioInput && totalDisplay) {
+        const cantidad = parseFloat(cantidadInput.value) || 0;
+        const precio = parseFloat(precioInput.value) || 0;
+        const total = cantidad * precio;
+        
+        totalDisplay.value = total.toFixed(2);
+      }
+    }
+
+    function updateCalculations() {
+      let subtotal = 0;
+      
+      // Calcular subtotal de todas las filas visibles
+      document.querySelectorAll('#items-rows tr:not([style*="display: none"])').forEach(row => {
+        const totalDisplay = row.querySelector('.total-display');
+        if (totalDisplay) {
+          subtotal += parseFloat(totalDisplay.value) || 0;
+        }
+      });
+      
+      // Verificar si incluye IGV
+      const incluyeIgv = document.querySelector('input[name="incluye_igv"]').checked;
+      const igv = incluyeIgv ? subtotal * 0.18 : 0;
+      const total = subtotal + igv;
+      
+      // Obtener símbolo de moneda
+      const monedaSelect = document.querySelector('select[name="moneda"]');
+      const simbolo = monedaSelect.value === 'Dolares' ? '$' : 'S/';
+      
+      // Actualizar displays
+      document.getElementById('subtotal-display').textContent = `${simbolo} ${subtotal.toFixed(2)}`;
+      document.getElementById('igv-display').textContent = incluyeIgv ? `${simbolo} ${igv.toFixed(2)}` : 'No incluye';
+      document.getElementById('total-display').textContent = `${simbolo} ${total.toFixed(2)}`;
+    }
+
+    // Actualizar cálculos cuando cambie IGV o moneda
+    document.querySelector('input[name="incluye_igv"]').addEventListener('change', updateCalculations);
+    document.querySelector('select[name="moneda"]').addEventListener('change', updateCalculations);
+
+    // Inicializar cálculos al cargar
+    document.addEventListener('DOMContentLoaded', function() {
+      // Calcular totales de filas existentes
+      document.querySelectorAll('#items-rows tr').forEach(updateRowTotal);
+      updateCalculations();
+    });
+  </script>
+</body>
+</html>

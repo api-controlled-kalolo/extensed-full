@@ -184,7 +184,7 @@ class Proyecto(models.Model):
 
 
 class Cliente(models.Model):
-    proyecto_principal = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='proyecto')
+    proyecto_principal = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='clientes')
     codigo = models.CharField(blank=False, unique=True, null=False, max_length=20)
     ruc = models.CharField(blank=False, unique=True, null=False, max_length=20)
     razon_social = models.CharField(blank=False, null=False, max_length=20)
@@ -219,14 +219,14 @@ class Cotizacion(models.Model):
     celular = models.CharField(max_length=9, blank=False, null=False) # Lista desplegable
     direccion = models.CharField(max_length=50, blank=False, null=False) # Lista desplegable
     correo = models.EmailField(blank=False) # Lista desplegable
-    forma_pago = models.CharField(max_length=20, choices=[('','-'),('AL CONTADO', 'AL CONTADO'), ('30 DIAS', '30 DIAS'), ('60 DIAS', '60 DIAS')], blank=True)
+    forma_pago = models.CharField(max_length=20, choices=[('','-'),('15 dias','15 dias'),('21 dias', '21 dias'),('30 dias', '30 dias'),('45 dias', '45 dias'), ('60 dias', '60 dias')], blank=True)
     validez_oferta = models.CharField(max_length=20, choices=[('','-'),('15 dias','15 dias'),('21 dias', '21 dias'),('30 dias', '30 dias'),('45 dias', '45 dias'), ('60 dias', '60 dias')], blank=False)
     moneda = models.CharField(max_length=10, choices=[('','-'),('Soles', 'Soles'), ('Dolares','Dolares')], blank=False)
     tipo_cambio = models.DecimalField(max_digits=6, decimal_places=3, null=True, blank=True, help_text="Tipo de cambio USD a PEN (se actualiza automáticamente desde BCR + 0.10)")
     incluye_igv = models.BooleanField(default=True, help_text="Si la cotización incluye IGV (18%)")
     alcance_total_oferta = models.TextField()
     estado_coti = models.CharField(max_length=20, choices=[('', '-'), ('En Negociación', 'En Negociación'),('Ganado', 'Ganado'), ('Perdida', 'Perdida')], default='En Negociación')
-    fecha_actualizacion_estado = models.DateTimeField(auto_now=True)
+    fecha_actualizacion_estado = models.DateTimeField(auto_now_add=True)
     #Relaciones
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='cotizaciones',)
     contacto = models.ForeignKey(Contacto, on_delete=models.CASCADE, related_name='cotizaciones_contacto', )
@@ -337,12 +337,35 @@ class Detalles_Cotizacion(models.Model):
     descripcion = models.TextField(blank=False, help_text="Ingrese la descripción de la Cotización") # Ingreso Manual
     unidad = models.CharField(choices=[('','-- Selecciona --'),('UNIDAD','UNIDAD'),('DECENA', 'DECENA')], blank=False) # Ingreso Manual
     cantidad = models.IntegerField(default=0, validators=[MinValueValidator(0), MaxValueValidator(300)]) # Ingreso Manual
-    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2) # Ingreso Manual
+    precio_unitario = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True, default=0) # Ingreso Manual
 
     @property
     def precio_total(self):
-        total = Decimal(str(self.cantidad)) * self.precio_unitario
-        return total.quantize(Decimal("0.01"))
+        try:
+            if self.cantidad is None or self.precio_unitario is None:
+                return Decimal('0.00')
+            
+            cantidad = Decimal(str(self.cantidad))
+            precio = Decimal(str(self.precio_unitario))
+            total = cantidad * precio
+            return total.quantize(Decimal("0.01"))
+        except (TypeError, ValueError, AttributeError):
+            return Decimal('0.00')
+    
+    def get_precio_total_safe(self):
+        """Método más seguro para obtener el precio total"""
+        try:
+            cantidad = getattr(self, 'cantidad', 0) or 0
+            precio_unitario = getattr(self, 'precio_unitario', 0) or 0
+            
+            if cantidad and precio_unitario:
+                return float(cantidad) * float(precio_unitario)
+            return 0.00
+        except:
+            return 0.00
     
     def __str__(self):
-        return f"{self.descripcion} x {self.cantidad} = {self.precio_total}"
+        try:
+            return f"{self.descripcion} x {self.cantidad} = {self.precio_total}"
+        except:
+            return f"{self.descripcion or 'Sin descripción'}"
