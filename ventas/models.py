@@ -2,7 +2,7 @@ from django.db import models
 from django.core.validators import MinValueValidator, MaxValueValidator
 from decimal import Decimal
 from datetime import datetime
-from services.bcr_service import obtener_tipo_cambio_bcr
+from services.tipo_cambio_service import obtener_tipo_cambio_actual
 
 # Create your models here.
 # -- ACTAS --
@@ -191,6 +191,13 @@ class Cliente(models.Model):
     direccion = models.CharField(blank=False, null=False, max_length=50)
     distrito = models.CharField(blank=False, null=False, max_length=20)
     provincia = models.CharField(blank=False, null=False, max_length=25)
+    
+    def save(self, *args, **kwargs):
+        if not self.pk and not self.codigo:
+            super().save(*args, **kwargs)
+            self.codigo = f"CLI-00{self.pk:01d}"
+            return super().save(update_fields=["codigo"])
+        return super().save(*args, **kwargs)
 
     def __str__(self):
         # Mostrar razón social y RUC en selects
@@ -233,16 +240,16 @@ class Cotizacion(models.Model):
     
     def obtener_tipo_cambio_actual(self):
         """
-        Obtiene el tipo de cambio actual del BCR con margen de seguridad
+        Obtiene el tipo de cambio actual con múltiples fuentes de respaldo
         """
         try:
-            return obtener_tipo_cambio_bcr()
+            return obtener_tipo_cambio_actual()
         except Exception:
-            return Decimal("3.760")  # Fallback seguro
+            return Decimal("3.850")  # Fallback seguro
     
     def actualizar_tipo_cambio(self):
         """
-        Actualiza el tipo de cambio con el valor actual del BCR
+        Actualiza el tipo de cambio con el valor actual usando múltiples fuentes
         """
         try:
             self.tipo_cambio = self.obtener_tipo_cambio_actual()
@@ -250,7 +257,7 @@ class Cotizacion(models.Model):
         except Exception:
             # Si falla, mantener el tipo de cambio actual o usar fallback
             if not self.tipo_cambio:
-                self.tipo_cambio = Decimal("3.760")
+                self.tipo_cambio = Decimal("3.850")
             return self.tipo_cambio
     
     @property

@@ -410,8 +410,14 @@
         const price = toFloat(tr.querySelector('input[name$="-precio_unitario"]')?.value);
         sum += qty * price;
       });
-      const igv = sum * IGV_RATE;
+      
+      // Verificar si el IGV está incluido
+      const igvCheckbox = document.querySelector('input[name="incluye_igv"]');
+      const incluyeIGV = igvCheckbox ? igvCheckbox.checked : true;
+      
+      const igv = incluyeIGV ? (sum * IGV_RATE) : 0;
       const total = sum + igv;
+      
       subtotalEl.textContent = money(sum);
       igvEl.textContent = money(igv);
       totalEl.textContent = money(total);
@@ -502,6 +508,123 @@
       if(clienteSel.value){
         fetchContactos(clienteSel.value);
       }
+    })();
+
+    // ===== Auto-completar Dirección desde Cliente =====
+    (function(){
+      const clienteSel = document.getElementById('id_cliente');
+      const direccionInput = document.querySelector('input[name="direccion"]');
+      if(!clienteSel || !direccionInput) return;
+
+      async function fetchDatosCliente(clienteId){
+        if(!clienteId){ 
+          direccionInput.value = '';
+          return;
+        }
+        try{
+          const url = `/ventas/api/clientes/${clienteId}/datos`;
+          const res = await fetch(url, {headers: {'X-Requested-With':'XMLHttpRequest'}});
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const data = await res.json();
+          
+          // Auto-completar dirección
+          if(data.direccion){
+            direccionInput.value = data.direccion;
+          }
+        }catch(e){
+          console.error('Error cargando datos del cliente', e);
+        }
+      }
+
+      clienteSel.addEventListener('change', (e)=>{
+        fetchDatosCliente(e.target.value);
+      });
+
+      // Si la página carga con cliente seleccionado, precargar
+      if(clienteSel.value){
+        fetchDatosCliente(clienteSel.value);
+      }
+    })();
+
+    // ===== Auto-completar Correo y Celular desde Contacto =====
+    (function(){
+      const contactoSel = document.getElementById('id_contacto');
+      const correoInput = document.querySelector('input[name="correo"]');
+      const celularInput = document.querySelector('input[name="celular"]');
+      if(!contactoSel || !correoInput || !celularInput) return;
+
+      async function fetchDatosContacto(contactoId){
+        if(!contactoId){ 
+          correoInput.value = '';
+          celularInput.value = '';
+          return;
+        }
+        try{
+          const url = `/ventas/api/contactos/${contactoId}/datos`;
+          const res = await fetch(url, {headers: {'X-Requested-With':'XMLHttpRequest'}});
+          if(!res.ok) throw new Error('HTTP '+res.status);
+          const data = await res.json();
+          
+          // Auto-completar correo y celular
+          if(data.correo){
+            correoInput.value = data.correo;
+          }
+          if(data.celular){
+            celularInput.value = data.celular;
+          }
+        }catch(e){
+          console.error('Error cargando datos del contacto', e);
+        }
+      }
+
+      contactoSel.addEventListener('change', (e)=>{
+        fetchDatosContacto(e.target.value);
+      });
+
+      // Si la página carga con contacto seleccionado, precargar
+      if(contactoSel.value){
+        fetchDatosContacto(contactoSel.value);
+      }
+    })();
+
+    // ===== Actualizar símbolo de moneda en totales =====
+    (function(){
+      const monedaSel = document.querySelector('select[name="moneda"]');
+      if(!monedaSel) return;
+
+      const simbolos = {
+        'Soles': 'S/.',
+        'Dolares': '$'
+      };
+
+      function actualizarSimboloMoneda(){
+        const moneda = monedaSel.value;
+        const simbolo = simbolos[moneda] || 'S/.';
+        
+        // Actualizar el símbolo en los totales
+        const subtotalLabel = document.querySelector('.totals-row:nth-child(1) span:first-child');
+        const igvLabel = document.querySelector('.totals-row:nth-child(2) span:first-child');
+        const totalLabel = document.querySelector('.totals-row:nth-child(3) span:first-child');
+        
+        if(subtotalLabel) subtotalLabel.innerHTML = `Subtotal <span style="color:var(--accent-blue);font-weight:600">(${simbolo})</span>`;
+        if(igvLabel) igvLabel.innerHTML = `IGV 18% <span style="color:var(--accent-blue);font-weight:600">(${simbolo})</span>`;
+        if(totalLabel) totalLabel.innerHTML = `Total <span style="color:var(--accent-blue);font-weight:600">(${simbolo})</span>`;
+      }
+
+      monedaSel.addEventListener('change', actualizarSimboloMoneda);
+      
+      // Ejecutar al cargar para establecer el símbolo inicial
+      actualizarSimboloMoneda();
+    })();
+
+    // ===== Recalcular cuando cambia el checkbox de IGV =====
+    (function(){
+      const igvCheckbox = document.querySelector('input[name="incluye_igv"]');
+      if(!igvCheckbox) return;
+
+      igvCheckbox.addEventListener('change', function(){
+        recalcTotals();
+      });
     })();
   </script>
 </body>

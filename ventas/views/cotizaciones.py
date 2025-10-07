@@ -753,6 +753,43 @@ def contactos_por_cliente_api(request, cliente_id: int):
         } for c in qs]
     return JsonResponse({"results": results})
 
+
+@login_required
+def obtener_datos_cliente_api(request, cliente_id: int):
+    """
+    Devuelve los datos del cliente (RUC, Razón Social, Dirección)
+    
+    Response:
+    { "ruc": "...", "razon_social": "...", "direccion": "..." }
+    """
+    try:
+        cliente = Cliente.objects.get(id=cliente_id)
+        return JsonResponse({
+            "ruc": cliente.ruc,
+            "razon_social": cliente.razon_social,
+            "direccion": cliente.direccion
+        })
+    except Cliente.DoesNotExist:
+        return JsonResponse({"error": "Cliente no encontrado"}, status=404)
+
+
+@login_required
+def obtener_datos_contacto_api(request, contacto_id: int):
+    """
+    Devuelve los datos del contacto (Correo, Celular)
+    
+    Response:
+    { "correo": "...", "celular": "..." }
+    """
+    try:
+        contacto = Contacto.objects.get(id=contacto_id)
+        return JsonResponse({
+            "correo": contacto.correo,
+            "celular": contacto.Celular
+        })
+    except Contacto.DoesNotExist:
+        return JsonResponse({"error": "Contacto no encontrado"}, status=404)
+
 @login_required
 def cotizaciones_list(request):
     """

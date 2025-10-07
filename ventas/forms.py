@@ -101,16 +101,21 @@ class CotizacionForm(forms.ModelForm):
             }),
             'celular': forms.TextInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Ej: 912345678', 
-                'maxlength': '9'
+                'placeholder': 'Se llenará automáticamente',
+                'readonly': 'readonly',
+                'style': 'background-color: #f8f9fa;'
             }),
             'direccion': forms.TextInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'Dirección del cliente'
+                'placeholder': 'Se llenará automáticamente',
+                'readonly': 'readonly',
+                'style': 'background-color: #f8f9fa;'
             }),
             'correo': forms.EmailInput(attrs={
                 'class': 'form-control', 
-                'placeholder': 'ejemplo@correo.com'
+                'placeholder': 'Se llenará automáticamente',
+                'readonly': 'readonly',
+                'style': 'background-color: #f8f9fa;'
             }),
             'forma_pago': forms.Select(attrs={
                 'class': 'form-select'
@@ -135,8 +140,8 @@ class CotizacionForm(forms.ModelForm):
         }
 
     # Mostrar cliente/contacto como selects (FKs en el modelo)
-    cliente = forms.ModelChoiceField(queryset=Cliente.objects.none(), required=True, label='Cliente', widget=forms.Select(attrs={'class': 'form-select'}))
-    contacto = forms.ModelChoiceField(queryset=Contacto.objects.none(), required=True, label='Contacto', widget=forms.Select(attrs={'class': 'form-select'}))
+    cliente = forms.ModelChoiceField(queryset=Cliente.objects.none(), required=True, label='Cliente', widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_cliente'}))
+    contacto = forms.ModelChoiceField(queryset=Contacto.objects.none(), required=True, label='Contacto', widget=forms.Select(attrs={'class': 'form-select', 'id': 'id_contacto'}))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -148,6 +153,9 @@ class CotizacionForm(forms.ModelForm):
         self.fields['incluye_igv'].label = '¿Incluye IGV?'
         self.fields['estado_coti'].label = 'Estado de la Cotización'
         self.fields['alcance_total_oferta'].label = 'Alcance Total de la Oferta'
+        self.fields['direccion'].label = 'Dirección del Cliente'
+        self.fields['correo'].label = 'Correo del Contacto'
+        self.fields['celular'].label = 'Celular del Contacto'
         
         # siempre todos los clientes
         self.fields['cliente'].queryset = Cliente.objects.all().order_by('razon_social')
@@ -175,6 +183,26 @@ class CotizacionForm(forms.ModelForm):
         # labels para selects
         self.fields['cliente'].label_from_instance = lambda obj: f"{obj.razon_social} ({obj.ruc})"
         self.fields['contacto'].label_from_instance = lambda obj: f"{obj.nombres} {obj.apellidos} - {obj.cargo}"
+    
+    def save(self, commit=True):
+        """Override save para auto-completar RUC, Razón Social, Dirección, Correo y Celular"""
+        instance = super().save(commit=False)
+        
+        # Auto-completar desde Cliente
+        if instance.cliente:
+            instance.ruc = instance.cliente.ruc
+            instance.razon_social = instance.cliente.razon_social
+            instance.direccion = instance.cliente.direccion
+        
+        # Auto-completar desde Contacto
+        if instance.contacto:
+            instance.correo = instance.contacto.correo
+            instance.celular = instance.contacto.Celular
+        
+        if commit:
+            instance.save()
+        
+        return instance
 
 class Detalles_CotizacionForms(forms.ModelForm):
     class Meta:
@@ -226,9 +254,8 @@ class ClienteForm(forms.ModelForm):
 
     class Meta:
         model = Cliente
-        fields = ['proyecto_principal', 'codigo', 'ruc', 'razon_social', 'direccion', 'distrito', 'provincia']
+        fields = ['proyecto_principal', 'ruc', 'razon_social', 'direccion', 'distrito', 'provincia']
         widgets = {
-            'codigo': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Código interno del cliente'}),
             'ruc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'RUC', 'pattern': r'\d{11}', 'title': 'RUC de 11 dígitos'}),
             'razon_social': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Razón social'}),
             'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección'}),

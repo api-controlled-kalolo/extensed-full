@@ -310,7 +310,7 @@
       </a>
 
       <!-- ==== Socios/Actividades (provisional) ==== -->
-      <a class="tile" role="button" aria-label="Clientes" href="#">
+      <a class="tile" role="button" aria-label="Clientes" href="{% url 'ventas:cliente_dashboard' %}">
         <div class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="7" r="3"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/>
@@ -318,16 +318,6 @@
         </div>
         <div class="title">Clientes</div>
         <div class="meta">Socios de negocio</div>
-      </a>
-
-      <a class="tile" role="button" aria-label="Crear Cliente" href="{% url 'ventas:clientecrear'%}">
-        <div class="icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="9" cy="8" r="3"/><path d="M15 8h6M18 5v6"/><path d="M4 21a6 6 0 0 1 10-4"/>
-          </svg>
-        </div>
-        <div class="title">Crear Cliente</div>
-        <div class="meta">Alta de partner</div>
       </a>
 
       <a class="tile" role="button" aria-label="Actividades" href="#">
@@ -371,13 +361,13 @@
         <div class="meta">Gestionar Proyectos</div>
       </a>
 
-      <a class="tile" role="button" aria-label="Crear Pedido" href="{% url 'ventas:contactocrear' %}">
+      <a class="tile" role="button" aria-label="Crear Pedido" href="{% url 'ventas:contacto_dashboard' %}">
         <div class="icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M12 5v14M5 12h14"/>
           </svg>
         </div>
-        <div class="title">Crear Contacto</div>
+        <div class="title">Contactos</div>
         <div class="meta">Gestionar Contactos</div>
       </a>
 

@@ -4,9 +4,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ERP · Contactos</title>
+  <title>ERP · Editar Contacto</title>
 
-  <!-- Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -27,10 +26,11 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{ margin:0; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden; }
+    body{
+      margin:0; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden;
+    }
 
-    /* Fondo */
     .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
     .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%; filter:blur(50px);
       opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
@@ -45,7 +45,6 @@
     @keyframes float{50%{transform:translateY(-20px) scale(1.03)}}
     @keyframes gridShift{to{background-position:40px 40px}}
 
-    /* Header */
     .header{position:sticky; top:0; z-index:30; padding:12px 20px; background:rgba(10,14,26,.55);
       backdrop-filter:blur(16px); border-bottom:1px solid var(--glass-border); animation:slideInDown .6s ease both}
     .header-content{max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between}
@@ -62,7 +61,6 @@
     .user-avatar{width:32px; height:32px; border-radius:10px; display:grid; place-items:center;
       background:var(--gradient-blue); font-weight:700}
 
-    /* Contenido */
     .container{max-width:1100px; margin:28px auto; padding:0 20px; animation:fadeInUp .5s ease both}
     .breadcrumb{color:var(--accent-blue); font-size:.9rem; margin-bottom:6px}
     .page-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px}
@@ -79,7 +77,6 @@
     .icon-btn:focus{outline:2px solid var(--primary-blue);outline-offset:3px}
     .icon-btn svg{width:20px;height:20px}
 
-    /* Card/Form */
     .glass-card{
       background:var(--glass-bg); backdrop-filter:blur(25px); border:1px solid var(--glass-border);
       border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-soft); animation:slideInUp .6s ease both;
@@ -93,14 +90,12 @@
       width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18);
       background:rgba(255,255,255,.06); color:var(--pure-white);
       transition:var(--transition); box-shadow:inset 0 0 0 rgba(0,0,0,0);
-      appearance:none;
-      color-scheme: dark; /* evita lista blanca en algunos navegadores */
+      appearance:none; color-scheme:dark;
     }
     .form-control::placeholder{color:#cbd5e1}
     .form-control:focus, .form-select:focus{outline:none; border-color:rgba(96,165,250,.6); box-shadow:0 0 0 3px rgba(96,165,250,.25)}
-    /* asegura visibilidad de opciones */
-    .form-select option{ color:#0f172a; background:#ffffff; }
-    @media (prefers-color-scheme: dark){ .form-select option{ color:#e5e7eb; background:#0b1220; } }
+    .form-select option{color:#0f172a; background:#ffffff}
+    @media (prefers-color-scheme: dark){.form-select option{color:#e5e7eb; background:#0b1220}}
 
     .errors{margin-top:6px; color:#fecaca; font-size:.9rem}
     .nonfield{margin-bottom:10px}
@@ -118,7 +113,12 @@
     .link{color:var(--accent-blue); text-decoration:none; font-weight:600}
     .link:hover{text-decoration:underline}
 
-    @media (max-width:900px){ .form-grid{grid-template-columns:1fr} }
+    .info-badge{
+      display:inline-block; padding:.5rem 1rem; border-radius:12px; background:rgba(96,165,250,.12);
+      border:1px solid rgba(96,165,250,.25); color:var(--accent-blue); font-weight:700; margin-bottom:16px;
+    }
+
+    @media (max-width:900px){.form-grid{grid-template-columns:1fr}}
     @keyframes slideInUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
     @keyframes slideInDown{from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:translateY(0)}}
     @keyframes fadeInUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
@@ -128,7 +128,6 @@
   </style>
 </head>
 <body>
-  <!-- Fondo -->
   <div class="background-effects" aria-hidden="true">
     <div class="gradient-orb orb-1"></div>
     <div class="gradient-orb orb-2"></div>
@@ -136,7 +135,6 @@
     <div class="grid-pattern"></div>
   </div>
 
-  <!-- Header -->
   <header class="header" role="banner">
     <div class="header-content">
       <div class="logo-section">
@@ -144,11 +142,11 @@
         <h1 class="system-title">ERP · Contactos</h1>
 
         <div class="nav-icons" role="group" aria-label="Navegación rápida">
-          <a class="icon-btn" href="{% url 'ventas:contacto_dashboard' %}" title="Panel contactos" aria-label="Panel contactos">
+          <a class="icon-btn" href="{% url 'ventas:listar_contactos' %}" title="Lista de contactos" aria-label="Ver lista de contactos">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 10.5L12 3l9 7.5"></path>
-              <path d="M5 11.5v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"></path>
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </a>
           <a class="icon-btn" href="javascript:history.back()" title="Regresar" aria-label="Regresar">
@@ -177,14 +175,13 @@
     </div>
   </header>
 
-  <!-- Contenido -->
   <main class="container" id="main">
-    <div class="breadcrumb">Ventas / Contactos / Crear</div>
+    <div class="breadcrumb">Ventas / Contactos / Editar</div>
 
     <div class="page-head">
       <div>
-        <h2 class="title">Crear Contacto</h2>
-        <p class="desc">Registra un nuevo contacto asociado a un cliente.</p>
+        <h2 class="title">Editar Contacto</h2>
+        <p class="desc">Actualiza la información del contacto y su cliente asociado.</p>
       </div>
     </div>
 
@@ -192,15 +189,24 @@
       <div class="messages" role="status" aria-live="polite" style="margin-bottom:16px">
         {% for message in messages %}
           <div class="msg {% if message.tags %}msg-{{ message.tags }}{% endif %}"
-               style="border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border); background:rgba(21,128,61,.15)">
+               style="border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border); background:rgba(34,197,94,.15); color:#bbf7d0">
             {{ message }}
           </div>
         {% endfor %}
       </div>
     {% endif %}
 
-    <!-- Formulario -->
-    <section class="glass-card" aria-label="Formulario de creación de contacto">
+    <div class="info-badge">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:6px">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      Contacto: <strong>{{ contacto.nombres }} {{ contacto.apellidos }}</strong> · Cliente: <strong>{{ contacto.cliente_principal.razon_social }}</strong>
+    </div>
+
+    <section class="glass-card" aria-label="Formulario de edición de contacto">
       <form method="post" id="contactoForm" novalidate>
         {% csrf_token %}
 
@@ -209,14 +215,13 @@
         {% endif %}
 
         <div class="form-grid">
-          <!-- Izquierda -->
           <div class="field">
             <label for="{{ form.cliente_principal.id_for_label }}" class="label">Cliente</label>
             {{ form.cliente_principal }}
             {% if form.cliente_principal.errors %}
               <div class="errors" role="alert">{{ form.cliente_principal.errors }}</div>
             {% else %}
-              <small class="help">Seleccione el cliente dueño del contacto.</small>
+              <small class="help">Seleccione el cliente asociado.</small>
             {% endif %}
           </div>
 
@@ -228,7 +233,6 @@
             {% endif %}
           </div>
 
-          <!-- Derecha -->
           <div class="field">
             <label for="{{ form.nombres.id_for_label }}" class="label">Nombres</label>
             {{ form.nombres }}
@@ -259,7 +263,7 @@
             {% if form.Celular.errors %}
               <div class="errors" role="alert">{{ form.Celular.errors }}</div>
             {% else %}
-              <small class="help">9 dígitos – Perú</small>
+              <small class="help">9 dígitos</small>
             {% endif %}
           </div>
 
@@ -273,30 +277,33 @@
         </div>
 
         <div class="actions">
-          <button type="submit" class="btn btn-primary" id="submitBtn" aria-label="Crear Contacto">
+          <button type="submit" class="btn btn-primary" id="submitBtn" aria-label="Guardar cambios">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 5v14M5 12h14"></path>
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            <span>Crear Contacto</span>
+            <span>Guardar cambios</span>
           </button>
 
-          <button type="reset" class="btn btn-ghost" aria-label="Limpiar formulario">
+          <button type="reset" class="btn btn-ghost" aria-label="Restablecer formulario">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 16L9 5 4 10l11 11h5zM4 10l-2 2 7 7 2-2"></path>
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <polyline points="23 20 23 14 17 14"></polyline>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
             </svg>
-            <span>Limpiar</span>
+            <span>Restablecer</span>
           </button>
 
-          <a href="{% url 'ventas:listar_contactos' %}" class="link" aria-label="Ver listado de contactos">Ver listado</a>
+          <a href="{% url 'ventas:listar_contactos' %}" class="link" aria-label="Cancelar y volver al listado">Cancelar y volver</a>
         </div>
       </form>
     </section>
   </main>
 
   <script>
-    // Autocierre de mensajes
     document.addEventListener('DOMContentLoaded', () => {
       const box = document.querySelector('.messages');
       if (box){
@@ -305,7 +312,6 @@
       }
     });
 
-    // Previene doble submit
     const form = document.getElementById('contactoForm');
     const btn = document.getElementById('submitBtn');
     form?.addEventListener('submit', () => {
@@ -314,7 +320,6 @@
       btn.insertAdjacentHTML('beforeend','<span aria-hidden="true" style="display:inline-block;margin-left:8px">· · ·</span>');
     });
 
-    // Asegura clases visuales
     const ids = [
       '{{ form.cliente_principal.id_for_label }}',
       '{{ form.apellidos.id_for_label }}',

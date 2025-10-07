@@ -210,15 +210,6 @@
 
         <div class="form-grid">
           <!-- Izquierda -->
-          <div class="field">
-            <label for="{{ form.codigo.id_for_label }}" class="label">Código interno</label>
-            {{ form.codigo }}
-            {% if form.codigo.errors %}
-              <div class="errors" role="alert">{{ form.codigo.errors }}</div>
-            {% else %}
-              <small class="help">Ejemplo: CLI-001</small>
-            {% endif %}
-          </div>
 
           <div class="field">
             <label for="{{ form.ruc.id_for_label }}" class="label">RUC</label>
@@ -292,7 +283,7 @@
             <span>Limpiar</span>
           </button>
 
-          <a href="#" class="link" aria-label="Ver listado de clientes">Ver listado</a>
+          <a href="{% url 'ventas:listar_clientes' %}" class="link" aria-label="Ver listado de clientes">Ver listado</a>
         </div>
       </form>
     </section>
@@ -319,7 +310,6 @@
 
     // Asegura clases visuales si no usas crispy
     const ids = [
-      '{{ form.codigo.id_for_label }}',
       '{{ form.ruc.id_for_label }}',
       '{{ form.razon_social.id_for_label }}',
       '{{ form.direccion.id_for_label }}',

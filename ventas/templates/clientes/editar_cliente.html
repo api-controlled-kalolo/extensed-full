@@ -4,9 +4,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ERP · Contactos</title>
+  <title>ERP · Editar Cliente</title>
 
-  <!-- Inter -->
+  <!-- Tipografía Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
@@ -27,13 +27,15 @@
     }
     *{box-sizing:border-box}
     html,body{height:100%}
-    body{ margin:0; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden; }
+    body{
+      margin:0; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden;
+    }
 
     /* Fondo */
     .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
-    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%; filter:blur(50px);
-      opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
+    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%;
+      filter:blur(50px); opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
     .orb-1{background:var(--gradient-blue); top:-100px; left:-80px}
     .orb-2{background:var(--gradient-accent); bottom:-120px; right:-60px; animation-delay:2s}
     .orb-3{background:radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8); top:40%; left:55%; animation-delay:4s}
@@ -94,13 +96,11 @@
       background:rgba(255,255,255,.06); color:var(--pure-white);
       transition:var(--transition); box-shadow:inset 0 0 0 rgba(0,0,0,0);
       appearance:none;
-      color-scheme: dark; /* evita lista blanca en algunos navegadores */
     }
     .form-control::placeholder{color:#cbd5e1}
     .form-control:focus, .form-select:focus{outline:none; border-color:rgba(96,165,250,.6); box-shadow:0 0 0 3px rgba(96,165,250,.25)}
-    /* asegura visibilidad de opciones */
-    .form-select option{ color:#0f172a; background:#ffffff; }
-    @media (prefers-color-scheme: dark){ .form-select option{ color:#e5e7eb; background:#0b1220; } }
+
+    .row-2{display:grid; grid-template-columns:1fr 1fr; gap:12px}
 
     .errors{margin-top:6px; color:#fecaca; font-size:.9rem}
     .nonfield{margin-bottom:10px}
@@ -118,7 +118,12 @@
     .link{color:var(--accent-blue); text-decoration:none; font-weight:600}
     .link:hover{text-decoration:underline}
 
-    @media (max-width:900px){ .form-grid{grid-template-columns:1fr} }
+    .info-badge{
+      display:inline-block; padding:.5rem 1rem; border-radius:12px; background:rgba(96,165,250,.12);
+      border:1px solid rgba(96,165,250,.25); color:var(--accent-blue); font-weight:700; margin-bottom:16px;
+    }
+
+    @media (max-width:900px){ .form-grid{grid-template-columns:1fr} .row-2{grid-template-columns:1fr} }
     @keyframes slideInUp{from{opacity:0; transform:translateY(12px)} to{opacity:1; transform:translateY(0)}}
     @keyframes slideInDown{from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:translateY(0)}}
     @keyframes fadeInUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
@@ -128,7 +133,7 @@
   </style>
 </head>
 <body>
-  <!-- Fondo -->
+  <!-- Efectos fondo -->
   <div class="background-effects" aria-hidden="true">
     <div class="gradient-orb orb-1"></div>
     <div class="gradient-orb orb-2"></div>
@@ -141,14 +146,14 @@
     <div class="header-content">
       <div class="logo-section">
         <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logo" />
-        <h1 class="system-title">ERP · Contactos</h1>
+        <h1 class="system-title">ERP · Clientes</h1>
 
         <div class="nav-icons" role="group" aria-label="Navegación rápida">
-          <a class="icon-btn" href="{% url 'ventas:contacto_dashboard' %}" title="Panel contactos" aria-label="Panel contactos">
+          <a class="icon-btn" href="{% url 'ventas:listar_clientes' %}" title="Lista de clientes" aria-label="Ver lista de clientes">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 10.5L12 3l9 7.5"></path>
-              <path d="M5 11.5v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"></path>
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+              <polyline points="9 22 9 12 15 12 15 22"></polyline>
             </svg>
           </a>
           <a class="icon-btn" href="javascript:history.back()" title="Regresar" aria-label="Regresar">
@@ -179,12 +184,12 @@
 
   <!-- Contenido -->
   <main class="container" id="main">
-    <div class="breadcrumb">Ventas / Contactos / Crear</div>
+    <div class="breadcrumb">Ventas / Clientes / Editar</div>
 
     <div class="page-head">
       <div>
-        <h2 class="title">Crear Contacto</h2>
-        <p class="desc">Registra un nuevo contacto asociado a un cliente.</p>
+        <h2 class="title">Editar Cliente</h2>
+        <p class="desc">Actualiza la información del cliente y su proyecto asociado.</p>
       </div>
     </div>
 
@@ -192,16 +197,27 @@
       <div class="messages" role="status" aria-live="polite" style="margin-bottom:16px">
         {% for message in messages %}
           <div class="msg {% if message.tags %}msg-{{ message.tags }}{% endif %}"
-               style="border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border); background:rgba(21,128,61,.15)">
+               style="border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border); background:rgba(34,197,94,.15); color:#bbf7d0">
             {{ message }}
           </div>
         {% endfor %}
       </div>
     {% endif %}
 
+    <!-- Badge informativo -->
+    <div class="info-badge">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"
+           stroke-linecap="round" stroke-linejoin="round" style="display:inline-block; vertical-align:middle; margin-right:6px">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="12" y1="16" x2="12" y2="12"></line>
+        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+      </svg>
+      Código: <strong>{{ cliente.codigo|default:"(Sin código)" }}</strong> · RUC: <strong>{{ cliente.ruc }}</strong>
+    </div>
+
     <!-- Formulario -->
-    <section class="glass-card" aria-label="Formulario de creación de contacto">
-      <form method="post" id="contactoForm" novalidate>
+    <section class="glass-card" aria-label="Formulario de edición de cliente">
+      <form method="post" id="clienteForm" novalidate>
         {% csrf_token %}
 
         {% if form.non_field_errors %}
@@ -210,86 +226,84 @@
 
         <div class="form-grid">
           <!-- Izquierda -->
+
           <div class="field">
-            <label for="{{ form.cliente_principal.id_for_label }}" class="label">Cliente</label>
-            {{ form.cliente_principal }}
-            {% if form.cliente_principal.errors %}
-              <div class="errors" role="alert">{{ form.cliente_principal.errors }}</div>
+            <label for="{{ form.ruc.id_for_label }}" class="label">RUC</label>
+            {{ form.ruc }}
+            {% if form.ruc.errors %}
+              <div class="errors" role="alert">{{ form.ruc.errors }}</div>
             {% else %}
-              <small class="help">Seleccione el cliente dueño del contacto.</small>
+              <small class="help">11 dígitos — Perú</small>
             {% endif %}
           </div>
 
           <div class="field">
-            <label for="{{ form.apellidos.id_for_label }}" class="label">Apellidos</label>
-            {{ form.apellidos }}
-            {% if form.apellidos.errors %}
-              <div class="errors" role="alert">{{ form.apellidos.errors }}</div>
+            <label for="{{ form.razon_social.id_for_label }}" class="label">Razón Social</label>
+            {{ form.razon_social }}
+            {% if form.razon_social.errors %}
+              <div class="errors" role="alert">{{ form.razon_social.errors }}</div>
             {% endif %}
           </div>
 
           <!-- Derecha -->
           <div class="field">
-            <label for="{{ form.nombres.id_for_label }}" class="label">Nombres</label>
-            {{ form.nombres }}
-            {% if form.nombres.errors %}
-              <div class="errors" role="alert">{{ form.nombres.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="field">
-            <label for="{{ form.cargo.id_for_label }}" class="label">Cargo</label>
-            {{ form.cargo }}
-            {% if form.cargo.errors %}
-              <div class="errors" role="alert">{{ form.cargo.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="field">
-            <label for="{{ form.correo.id_for_label }}" class="label">Correo</label>
-            {{ form.correo }}
-            {% if form.correo.errors %}
-              <div class="errors" role="alert">{{ form.correo.errors }}</div>
-            {% endif %}
-          </div>
-
-          <div class="field">
-            <label for="{{ form.Celular.id_for_label }}" class="label">Celular</label>
-            {{ form.Celular }}
-            {% if form.Celular.errors %}
-              <div class="errors" role="alert">{{ form.Celular.errors }}</div>
+            <label for="{{ form.proyecto_principal.id_for_label }}" class="label">Proyecto Principal</label>
+            {{ form.proyecto_principal }}
+            {% if form.proyecto_principal.errors %}
+              <div class="errors" role="alert">{{ form.proyecto_principal.errors }}</div>
             {% else %}
-              <small class="help">9 dígitos – Perú</small>
+              <small class="help">Seleccione el proyecto al que pertenece el cliente.</small>
             {% endif %}
           </div>
 
           <div class="field">
-            <label for="{{ form.Sede.id_for_label }}" class="label">Sede</label>
-            {{ form.Sede }}
-            {% if form.Sede.errors %}
-              <div class="errors" role="alert">{{ form.Sede.errors }}</div>
+            <label for="{{ form.direccion.id_for_label }}" class="label">Dirección</label>
+            {{ form.direccion }}
+            {% if form.direccion.errors %}
+              <div class="errors" role="alert">{{ form.direccion.errors }}</div>
             {% endif %}
+          </div>
+
+          <div class="row-2">
+            <div class="field">
+              <label for="{{ form.distrito.id_for_label }}" class="label">Distrito</label>
+              {{ form.distrito }}
+              {% if form.distrito.errors %}
+                <div class="errors" role="alert">{{ form.distrito.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="field">
+              <label for="{{ form.provincia.id_for_label }}" class="label">Provincia</label>
+              {{ form.provincia }}
+              {% if form.provincia.errors %}
+                <div class="errors" role="alert">{{ form.provincia.errors }}</div>
+              {% endif %}
+            </div>
           </div>
         </div>
 
         <div class="actions">
-          <button type="submit" class="btn btn-primary" id="submitBtn" aria-label="Crear Contacto">
+          <button type="submit" class="btn btn-primary" id="submitBtn" aria-label="Guardar cambios">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 5v14M5 12h14"></path>
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+              <polyline points="17 21 17 13 7 13 7 21"></polyline>
+              <polyline points="7 3 7 8 15 8"></polyline>
             </svg>
-            <span>Crear Contacto</span>
+            <span>Guardar cambios</span>
           </button>
 
-          <button type="reset" class="btn btn-ghost" aria-label="Limpiar formulario">
+          <button type="reset" class="btn btn-ghost" aria-label="Restablecer formulario">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"
                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M20 16L9 5 4 10l11 11h5zM4 10l-2 2 7 7 2-2"></path>
+              <polyline points="1 4 1 10 7 10"></polyline>
+              <polyline points="23 20 23 14 17 14"></polyline>
+              <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
             </svg>
-            <span>Limpiar</span>
+            <span>Restablecer</span>
           </button>
 
-          <a href="{% url 'ventas:listar_contactos' %}" class="link" aria-label="Ver listado de contactos">Ver listado</a>
+          <a href="{% url 'ventas:listar_clientes' %}" class="link" aria-label="Cancelar y volver al listado">Cancelar y volver</a>
         </div>
       </form>
     </section>
@@ -306,7 +320,7 @@
     });
 
     // Previene doble submit
-    const form = document.getElementById('contactoForm');
+    const form = document.getElementById('clienteForm');
     const btn = document.getElementById('submitBtn');
     form?.addEventListener('submit', () => {
       btn.disabled = true;
@@ -314,15 +328,14 @@
       btn.insertAdjacentHTML('beforeend','<span aria-hidden="true" style="display:inline-block;margin-left:8px">· · ·</span>');
     });
 
-    // Asegura clases visuales
+    // Asegura clases visuales si no usas crispy
     const ids = [
-      '{{ form.cliente_principal.id_for_label }}',
-      '{{ form.apellidos.id_for_label }}',
-      '{{ form.nombres.id_for_label }}',
-      '{{ form.cargo.id_for_label }}',
-      '{{ form.correo.id_for_label }}',
-      '{{ form.Celular.id_for_label }}',
-      '{{ form.Sede.id_for_label }}'
+      '{{ form.ruc.id_for_label }}',
+      '{{ form.razon_social.id_for_label }}',
+      '{{ form.direccion.id_for_label }}',
+      '{{ form.distrito.id_for_label }}',
+      '{{ form.provincia.id_for_label }}',
+      '{{ form.proyecto_principal.id_for_label }}'
     ];
     ids.forEach(id => {
       const el = document.getElementById(id);

@@ -1,0 +1,287 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERP · Lista de Contactos</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --primary-blue:#2563eb; --secondary-blue:#1d4ed8; --light-blue:#3b82f6; --accent-blue:#60a5fa;
+      --pure-white:#ffffff; --light-gray:#f8fafc; --medium-gray:#94a3b8; --glass-bg:rgba(255,255,255,.08);
+      --glass-border:rgba(255,255,255,.12); --shadow-soft:0 12px 30px rgba(15,23,42,.4);
+      --shadow-medium:0 18px 42px rgba(15,23,42,.5); --transition:all .4s cubic-bezier(.4,0,.2,1);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Inter',sans-serif; color:var(--pure-white);
+      background:radial-gradient(circle at top,#111827 0%,#020617 60%,#010206 100%);
+      min-height:100vh; overflow-x:auto;
+    }
+
+    .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
+    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%; filter:blur(50px);
+      opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
+    .orb-1{background:var(--primary-blue); top:-120px; left:-80px}
+    .orb-2{background:var(--accent-blue); bottom:-140px; right:-100px; animation-delay:2s}
+    .grid-pattern{position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+      background-size:40px 40px; mask-image:radial-gradient(ellipse at center,rgba(0,0,0,.85),transparent 70%);
+      animation:gridShift 30s linear infinite;
+    }
+    @keyframes float{50%{transform:translateY(-20px) scale(1.03)}}
+    @keyframes gridShift{to{background-position:40px 40px}}
+
+    header.header{position:sticky; top:0; z-index:30; padding:12px 20px; background:rgba(10,14,26,.62);
+      backdrop-filter:blur(18px); border-bottom:1px solid var(--glass-border); animation:slideInDown .6s ease both;}
+    .header-content{max-width:1200px; margin:0 auto; display:flex; align-items:center; justify-content:space-between}
+    .logo-section{display:flex; align-items:center; gap:12px}
+    .logo-section img{height:48px; filter:brightness(1.2); transition:var(--transition)}
+    .logo-section img:hover{filter:brightness(1.5)}
+    .system-title{margin:0; font-size:1.05rem; font-weight:800}
+    .nav-icons{display:flex; align-items:center; gap:10px}
+    .icon-btn{display:grid; place-items:center; width:36px; height:36px; border-radius:12px;
+      background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--pure-white);
+      text-decoration:none; transition:var(--transition)}
+    .icon-btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.22); box-shadow:var(--shadow-soft)}
+
+    main.container{max-width:1200px; margin:28px auto 60px; padding:0 20px; animation:fadeInUp .5s ease both}
+    .breadcrumb{color:var(--accent-blue); font-size:.9rem; margin-bottom:6px}
+    .page-head{display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px}
+    .title{margin:0; font-size:1.6rem; font-weight:800}
+    .desc{margin:4px 0 0; color:var(--medium-gray)}
+    .actions{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+    .btn{display:inline-grid; place-items:center; padding:.65rem 1.2rem; border-radius:12px; font-weight:700;
+      text-decoration:none; transition:var(--transition); border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--pure-white)}
+    .btn-primary{background:linear-gradient(135deg,#2563eb,#1d4ed8); border-color:transparent}
+    .btn:hover{transform:translateY(-1px)}
+
+    .search-box{position:relative; flex:1; min-width:280px; max-width:400px}
+    .search-input{width:100%; padding:.75rem 1rem .75rem 2.75rem; border-radius:12px; border:1px solid rgba(148,163,184,.2);
+      background:rgba(15,23,42,.7); color:var(--pure-white); font-size:.95rem; transition:var(--transition)}
+    .search-input:focus{outline:2px solid var(--primary-blue); outline-offset:2px; background:rgba(37,99,235,.08)}
+    .search-icon{position:absolute; left:1rem; top:50%; transform:translateY(-50%); width:18px; height:18px; color:var(--medium-gray); pointer-events:none}
+
+    .card{background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:22px; padding:22px; backdrop-filter:blur(26px);
+      box-shadow:var(--shadow-soft); overflow:hidden}
+    .table-wrap{overflow:auto; margin-top:12px}
+    table{width:100%; border-collapse:separate; border-spacing:0 10px}
+    thead th{font-size:.85rem; font-weight:700; color:var(--medium-gray); text-transform:uppercase; letter-spacing:.4px; padding:0 16px 8px; text-align:left}
+    tbody tr{background:rgba(15,23,42,.7); border:1px solid rgba(148,163,184,.16); transition:var(--transition)}
+    tbody tr:hover{background:rgba(15,23,42,.85); border-color:rgba(148,163,184,.25)}
+    tbody tr td{padding:14px 16px; font-size:.95rem}
+    tbody tr td:first-child{border-top-left-radius:16px; border-bottom-left-radius:16px}
+    tbody tr td:last-child{border-top-right-radius:16px; border-bottom-right-radius:16px}
+    .badge{display:inline-block; padding:.3rem .75rem; border-radius:999px; background:rgba(37,99,235,.16); border:1px solid rgba(96,165,250,.35); color:var(--accent-blue); font-weight:700; font-size:.8rem}
+    .action-links{display:flex; gap:8px; flex-wrap:wrap}
+    .action-btn{display:inline-grid; place-items:center; padding:.5rem 1rem; border-radius:10px; font-size:.85rem; font-weight:600; text-decoration:none; transition:var(--transition)}
+    .action-btn.edit{background:rgba(37,99,235,.12); border:1px solid rgba(96,165,250,.25); color:var(--light-gray)}
+    .action-btn.delete{background:rgba(239,68,68,.12); border:1px solid rgba(239,68,68,.25); color:#fca5a5}
+    .action-btn:hover{transform:translateY(-1px)}
+
+    .empty-state{padding:48px 32px; text-align:center; color:var(--medium-gray); border:1px dashed rgba(148,163,184,.25); border-radius:18px; margin-top:18px}
+    .empty-state svg{width:64px; height:64px; margin-bottom:16px; opacity:.5}
+
+    .messages{display:flex; flex-direction:column; gap:10px; margin-bottom:18px}
+    .message{padding:12px 16px; border-radius:14px; border:1px solid rgba(148,163,184,.2); background:rgba(15,23,42,.65); display:flex; align-items:center; gap:12px}
+    .message.success{border-color:rgba(34,197,94,.4); background:rgba(34,197,94,.12); color:#bbf7d0}
+    .message.error{border-color:rgba(248,113,113,.4); background:rgba(248,113,113,.14); color:#fecaca}
+
+    @keyframes slideInDown{from{opacity:0; transform:translateY(-8px)} to{opacity:1; transform:translateY(0)}}
+    @keyframes fadeInUp{from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:translateY(0)}}
+  </style>
+</head>
+<body>
+  <div class="background-effects">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <header class="header">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logotipo" />
+        <h1 class="system-title">Lista de Contactos</h1>
+        <div class="nav-icons">
+          <a class="icon-btn" href="{% url 'ventas:contacto_dashboard' %}" title="Panel contactos" aria-label="Panel contactos">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 10.5L12 3l9 7.5"></path>
+              <path d="M5 11.5v9a1 1 0 0 0 1 1h4v-6h4v6h4a1 1 0 0 0 1-1v-9"></path>
+            </svg>
+          </a>
+          <a class="icon-btn" href="javascript:history.back()" title="Regresar" aria-label="Regresar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 19l-7-7 7-7"></path>
+              <path d="M4 12h13"></path>
+            </svg>
+          </a>
+        </div>
+      </div>
+      <a class="btn btn-primary" href="{% url 'ventas:contactocrear' %}">+ Crear contacto</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="breadcrumb">Ventas / Contactos / Listado</div>
+    <div class="page-head">
+      <div>
+        <h2 class="title">Contactos registrados</h2>
+        <p class="desc">Consulta y administra los contactos de tus clientes.</p>
+      </div>
+      <div class="actions">
+        <div class="search-box">
+          <svg class="search-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/>
+            <path d="m21 21-4.35-4.35"/>
+          </svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Buscar por nombre, cargo, cliente..." autocomplete="off">
+        </div>
+        <span class="badge" id="totalCount">Total: {{ contactos.count }}</span>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div class="messages">
+        {% for message in messages %}
+          <div class="message {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="card">
+      <h3 style="margin-top:0; font-size:1.05rem; font-weight:700">Listado general</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Apellidos</th>
+              <th>Nombres</th>
+              <th>Cargo</th>
+              <th>Correo</th>
+              <th>Celular</th>
+              <th>Cliente</th>
+              <th>Sede</th>
+              <th style="text-align:center">Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="contactosTableBody">
+            {% for contacto in contactos %}
+              <tr data-contacto-id="{{ contacto.id }}">
+                <td>{{ contacto.apellidos }}</td>
+                <td>{{ contacto.nombres }}</td>
+                <td>{{ contacto.cargo }}</td>
+                <td>{{ contacto.correo }}</td>
+                <td>{{ contacto.Celular }}</td>
+                <td>{{ contacto.cliente_principal.razon_social }}</td>
+                <td>{{ contacto.Sede }}</td>
+                <td>
+                  <div class="action-links">
+                    <a href="{% url 'ventas:editar_contacto' contacto.id %}" class="action-btn edit">Editar</a>
+                    <a href="{% url 'ventas:eliminar_contacto' contacto.id %}" class="action-btn delete">Eliminar</a>
+                  </div>
+                </td>
+              </tr>
+            {% empty %}
+              <tr>
+                <td colspan="8">
+                  <div class="empty-state">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <p style="margin:0; font-weight:600">No hay contactos registrados</p>
+                    <p style="margin:8px 0 0; font-size:.9rem">Utiliza el botón "Crear contacto" para iniciar.</p>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    (function(){
+      const searchInput = document.getElementById('searchInput');
+      const tableBody = document.getElementById('contactosTableBody');
+      const totalCount = document.getElementById('totalCount');
+      let debounceTimer;
+
+      searchInput?.addEventListener('input', function(e){
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => buscarContactos(e.target.value.trim()), 300);
+      });
+
+      function buscarContactos(query){
+        fetch(`{% url 'ventas:buscar_contactos_json' %}?q=${encodeURIComponent(query)}`)
+          .then(res => res.json())
+          .then(data => {
+            if(!data.contactos || data.contactos.length === 0){
+              tableBody.innerHTML = `
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:48px;height:48px;margin-bottom:12px;opacity:.4">
+                        <circle cx="11" cy="11" r="8"/>
+                        <path d="m21 21-4.35-4.35"/>
+                      </svg>
+                      <p style="margin:0; font-weight:600">No se encontraron resultados</p>
+                      <p style="margin:8px 0 0; font-size:.9rem">Intenta con otro término de búsqueda.</p>
+                    </div>
+                  </td>
+                </tr>
+              `;
+              totalCount.textContent = 'Total: 0';
+              return;
+            }
+
+            const rows = data.contactos.map(c => `
+              <tr data-contacto-id="${c.id}">
+                <td>${c.apellidos}</td>
+                <td>${c.nombres}</td>
+                <td>${c.cargo}</td>
+                <td>${c.correo}</td>
+                <td>${c.celular}</td>
+                <td>${c.cliente}</td>
+                <td>${c.sede}</td>
+                <td>
+                  <div class="action-links">
+                    <a href="/ventas/contactos/${c.id}/editar/" class="action-btn edit">Editar</a>
+                    <a href="/ventas/contactos/${c.id}/eliminar/" class="action-btn delete">Eliminar</a>
+                  </div>
+                </td>
+              </tr>
+            `).join('');
+
+            tableBody.innerHTML = rows;
+            totalCount.textContent = `Total: ${data.contactos.length}`;
+          })
+          .catch(err => {
+            console.error('Error al buscar contactos:', err);
+            tableBody.innerHTML = `
+              <tr>
+                <td colspan="8">
+                  <div class="empty-state">
+                    <p style="margin:0; color:#fca5a5">Error al cargar los resultados. Intenta de nuevo.</p>
+                  </div>
+                </td>
+              </tr>
+            `;
+          });
+      }
+    })();
+  </script>
+</body>
+</html>
