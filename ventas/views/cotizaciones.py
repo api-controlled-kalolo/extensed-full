@@ -8,9 +8,18 @@ from django.template import Template, Context
 from django.template.loader import render_to_string
 from services.gotenberg_engine import html_to_pdf_bytes_gotenberg 
 from datetime import datetime
-from ventas.models import Contacto, Cliente, Cotizacion, Detalles_Cotizacion
+from ventas.models import (
+    Contacto,
+    Cliente,
+    Cotizacion,
+    Detalles_Cotizacion,
+    Proyecto,
+    UnidadNegocio,
+)
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.utils.formats import number_format
+import json
 
 @login_required
 def generar_cotizacion(request):
@@ -78,8 +87,8 @@ def generar_cotizacion(request):
                 }
                 
                 .logo {
-                    height: 120px;
-                    max-width: 300px;
+                    height: 80px;
+                    max-width: 220px;
                     object-fit: contain;
                 }
                 
@@ -251,24 +260,36 @@ def generar_cotizacion(request):
                 
                 .subtotal-row td, .igv-row td, .total-row td {
                     border-bottom: none !important;
-                    padding: 12px 8px !important;
-                    font-size: 11px !important;
+                    padding: 9px 8px !important;
+                    font-size: 10px !important;
                     font-weight: 700 !important;
                     text-align: center !important;
                 }
                 
                 .total-label-cell {
                     text-align: center !important;
-                    letter-spacing: 0.8px !important;
+                    letter-spacing: 0.5px !important;
                     text-transform: uppercase !important;
-                    font-size: 11px !important;
+                    font-size: 10px !important;
                 }
                 
                 .total-amount-cell {
-                    font-size: 12px !important;
-                    font-weight: 800 !important;
-                    letter-spacing: 0.5px !important;
+                    font-size: 10px !important;
+                    font-weight: 700 !important;
+                    letter-spacing: 0.2px !important;
                     text-align: center !important;
+                }
+                
+                .amount-wrapper {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 3px;
+                    font-weight: 700;
+                }
+                
+                .amount-wrapper .currency {
+                    font-weight: 700;
                 }
                 
                 /* MODIFICACIÓN 2: Nueva estructura de layout */
@@ -479,13 +500,15 @@ def generar_cotizacion(request):
                         margin: 10px 0;
                     }
                     
+                    .subtotal-row td,
+                    .igv-row td,
                     .total-row td {
-                        font-size: 9px !important;
-                        padding: 10px 4px !important;
+                        font-size: 8px !important;
+                        padding: 8px 3px !important;
                     }
                     
                     .total-amount-cell {
-                        font-size: 10px !important;
+                        font-size: 8px !important;
                     }
                     
                     /* Mantener dos columnas también en impresión */
@@ -588,21 +611,30 @@ def generar_cotizacion(request):
                             <tr class="subtotal-row">
                                 <td colspan="5" class="total-label-cell">SUBTOTAL</td>
                                 <td class="total-amount-cell">
-                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ subtotal|floatformat:2 }}
+                                    <div class="amount-wrapper">
+                                        <span class="currency">{% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %}</span>
+                                        <span class="amount">{{ subtotal|floatformat:2 }}</span>
+                                    </div>
                                 </td>
                             </tr>
                             {% if cotizacion.incluye_igv %}
                             <tr class="igv-row">
                                 <td colspan="5" class="total-label-cell">IGV (18%)</td>
                                 <td class="total-amount-cell">
-                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ igv_monto|floatformat:2 }}
+                                    <div class="amount-wrapper">
+                                        <span class="currency">{% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %}</span>
+                                        <span class="amount">{{ igv_monto|floatformat:2 }}</span>
+                                    </div>
                                 </td>
                             </tr>
                             {% endif %}
                             <tr class="total-row">
                                 <td colspan="5" class="total-label-cell">TOTAL GENERAL</td>
                                 <td class="total-amount-cell">
-                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ total_con_igv|floatformat:2 }}
+                                    <div class="amount-wrapper">
+                                        <span class="currency">{% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %}</span>
+                                        <span class="amount">{{ total_con_igv|floatformat:2 }}</span>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -655,7 +687,7 @@ def generar_cotizacion(request):
                 <!-- Nota de Tipo de Cambio -->
                 <div class="exchange-note">
                     {% if cotizacion.moneda == 'Dolares' %}
-                        Para la conversión a soles, se empleará el tipo de cambio de S/ {{ tipo_cambio_efectivo|floatformat:3 }} (BCR + margen) vigente en la fecha de la cotización.
+                        Para la conversión a soles, se empleará el tipo de cambio de S/ {{ tipo_cambio_efectivo|floatformat:3 }} vigente en la fecha de la cotización.
                     {% else %}
                         Precios expresados en {{ cotizacion.moneda|default:"Soles" }}.
                         {% if cotizacion.moneda == 'Soles' and tipo_cambio_efectivo %}
@@ -928,7 +960,7 @@ def cambiar_estado_cotizacion(request, pk):
         }, status=500)
 
 from datetime import date, timedelta
-from decimal import Decimal
+from decimal import Decimal, ROUND_HALF_UP
 
 from django.db.models import (
     Sum, Count, F, Value, Q
@@ -956,6 +988,19 @@ def cotizaciones_dashboard(request):
     desde_str = (request.GET.get('desde') or "").strip()
     hasta_str = (request.GET.get('hasta') or "").strip()
     cliente_id = (request.GET.get('cliente') or "").strip()
+    unidad_id = (request.GET.get('unidad') or "").strip()
+    proyecto_id = (request.GET.get('proyecto') or "").strip()
+    estado_sel = (request.GET.get('estado') or "").strip()
+
+    def _to_int(val):
+        try:
+            return int(val)
+        except (TypeError, ValueError):
+            return None
+
+    unidad_id_int = _to_int(unidad_id)
+    proyecto_id_int = _to_int(proyecto_id)
+    cliente_id_int = _to_int(cliente_id)
 
     try:
         desde = date.fromisoformat(desde_str) if desde_str else default_desde
@@ -967,8 +1012,14 @@ def cotizaciones_dashboard(request):
         hasta = hoy
 
     base_q = Q(fecha_creacion__gte=desde) & Q(fecha_creacion__lte=hasta)
-    if cliente_id:
-        base_q &= Q(cliente_id=cliente_id)
+    if cliente_id_int:
+        base_q &= Q(cliente_id=cliente_id_int)
+    if proyecto_id_int:
+        base_q &= Q(cliente__proyecto_principal_id=proyecto_id_int)
+    if unidad_id_int:
+        base_q &= Q(cliente__proyecto_principal__unidad_negocio_principal_id=unidad_id_int)
+    if estado_sel:
+        base_q &= Q(estado_coti=estado_sel)
 
     # ------- QuerySets filtrados -------
     qs_cot = Cotizacion.objects.filter(base_q).select_related('cliente')
@@ -982,13 +1033,20 @@ def cotizaciones_dashboard(request):
     agg_sub = qs_det.aggregate(
         subtotal=Coalesce(Sum(F('cantidad') * F('precio_unitario'), output_field=DecimalField()), Value(0, output_field=DecimalField()))
     )
-    subtotal = Decimal(agg_sub['subtotal'] or 0)
+    subtotal = Decimal(agg_sub['subtotal'] or 0).quantize(Decimal("0.01"))
     igv = (subtotal * IGV_RATE).quantize(Decimal("0.01"))
     total = (subtotal + igv).quantize(Decimal("0.01"))
 
     total_cotizaciones = qs_cot.count()
     total_items = qs_det.aggregate(cnt=Coalesce(Count('id'), Value(0)))['cnt'] or 0
     ticket_prom = (total / total_cotizaciones).quantize(Decimal("0.01")) if total_cotizaciones else Decimal("0.00")
+
+    def _round_to_int(value):
+        if value is None:
+            return 0
+        if not isinstance(value, Decimal):
+            value = Decimal(value)
+        return int(value.quantize(Decimal("1"), rounding=ROUND_HALF_UP))
 
     # Crecimiento vs. periodo anterior (mide cotizaciones)
     periodo_dias = max((hasta - desde).days, 1)
@@ -998,8 +1056,14 @@ def cotizaciones_dashboard(request):
         fecha_creacion__gte=prev_desde,
         fecha_creacion__lte=prev_hasta
     )
-    if cliente_id:
-        qs_prev_cot = qs_prev_cot.filter(cliente_id=cliente_id)
+    if cliente_id_int:
+        qs_prev_cot = qs_prev_cot.filter(cliente_id=cliente_id_int)
+    if proyecto_id_int:
+        qs_prev_cot = qs_prev_cot.filter(cliente__proyecto_principal_id=proyecto_id_int)
+    if unidad_id_int:
+        qs_prev_cot = qs_prev_cot.filter(cliente__proyecto_principal__unidad_negocio_principal_id=unidad_id_int)
+    if estado_sel:
+        qs_prev_cot = qs_prev_cot.filter(estado_coti=estado_sel)
     prev_count = qs_prev_cot.count()
     growth_pct = 0.0
     if prev_count and total_cotizaciones is not None:
@@ -1013,8 +1077,14 @@ def cotizaciones_dashboard(request):
         fecha_creacion__gte=last_30_from,
         fecha_creacion__lte=hoy
     )
-    if cliente_id:
-        qs_30 = qs_30.filter(cliente_id=cliente_id)
+    if cliente_id_int:
+        qs_30 = qs_30.filter(cliente_id=cliente_id_int)
+    if proyecto_id_int:
+        qs_30 = qs_30.filter(cliente__proyecto_principal_id=proyecto_id_int)
+    if unidad_id_int:
+        qs_30 = qs_30.filter(cliente__proyecto_principal__unidad_negocio_principal_id=unidad_id_int)
+    if estado_sel:
+        qs_30 = qs_30.filter(estado_coti=estado_sel)
 
     by_day = (
         qs_30
@@ -1035,8 +1105,14 @@ def cotizaciones_dashboard(request):
     # ------- Series: Monto por mes (últimos 12 meses) -------
     last_12_from = (hoy.replace(day=1) - timedelta(days=365))  # aprox 12 meses
     qs_cot_12 = Cotizacion.objects.filter(fecha_creacion__gte=last_12_from, fecha_creacion__lte=hoy)
-    if cliente_id:
-        qs_cot_12 = qs_cot_12.filter(cliente_id=cliente_id)
+    if cliente_id_int:
+        qs_cot_12 = qs_cot_12.filter(cliente_id=cliente_id_int)
+    if proyecto_id_int:
+        qs_cot_12 = qs_cot_12.filter(cliente__proyecto_principal_id=proyecto_id_int)
+    if unidad_id_int:
+        qs_cot_12 = qs_cot_12.filter(cliente__proyecto_principal__unidad_negocio_principal_id=unidad_id_int)
+    if estado_sel:
+        qs_cot_12 = qs_cot_12.filter(estado_coti=estado_sel)
     qs_det_12 = Detalles_Cotizacion.objects.filter(cotizacion_principal__in=qs_cot_12)
 
     by_month_amount = (
@@ -1055,7 +1131,7 @@ def cotizaciones_dashboard(request):
         months_labels.append(cur.strftime("%Y-%m"))
         match = next((x for x in by_month_amount if x['m'] and x['m'].strftime("%Y-%m") == cur.strftime("%Y-%m")), None)
         monto = Decimal(match['monto']) if match else Decimal("0")
-        months_amounts.append(float(monto))
+        months_amounts.append(_round_to_int(monto))
         # avanzar 1 mes
         if cur.month == 12:
             cur = cur.replace(year=cur.year + 1, month=1)
@@ -1073,7 +1149,7 @@ def cotizaciones_dashboard(request):
     client_ids = [r['cotizacion_principal__cliente_id'] for r in top_raw if r['cotizacion_principal__cliente_id']]
     clientes_map = {c.id: str(c) for c in Cliente.objects.filter(id__in=client_ids)} if client_ids else {}
     top_clients_labels = [clientes_map.get(r['cotizacion_principal__cliente_id'], f"ID {r['cotizacion_principal__cliente_id']}") for r in top_raw]
-    top_clients_values = [float(r['monto']) for r in top_raw]
+    top_clients_values = [_round_to_int(Decimal(r['monto'])) for r in top_raw]
 
     # ------- Mix de unidades -------
     unidades_raw = (
@@ -1086,27 +1162,102 @@ def cotizaciones_dashboard(request):
     unidades_labels = [r['unidad'] or '—' for r in unidades_raw]  # por si hay vacío
     unidades_counts = [int(r['cnt']) for r in unidades_raw]
 
-    # ------- Contexto -------
+    # ------- Estados: cantidad y monto -------
+    estados_labels = ['En Negociación', 'Ganado', 'Perdida']
+    estados_counts = []
+    estados_amounts = []
+    for est in estados_labels:
+        cnt = qs_cot.filter(estado_coti=est).count()
+        monto_estado = qs_det.filter(
+            cotizacion_principal__estado_coti=est
+        ).aggregate(
+            total=Coalesce(Sum(F('cantidad') * F('precio_unitario'), output_field=DecimalField()), Value(0, output_field=DecimalField()))
+        )['total']
+        estados_counts.append(cnt)
+        estados_amounts.append(_round_to_int(Decimal(monto_estado or 0)))
+
+    # ------- Valores formateados -------
+    total_cotizaciones_display = number_format(total_cotizaciones, decimal_pos=0, use_l10n=True, force_grouping=True)
+    total_items_display = number_format(total_items, decimal_pos=0, use_l10n=True, force_grouping=True)
+    subtotal_display = number_format(subtotal, decimal_pos=0, use_l10n=True, force_grouping=True)
+    igv_display = number_format(igv, decimal_pos=0, use_l10n=True, force_grouping=True)
+    total_display = number_format(total, decimal_pos=0, use_l10n=True, force_grouping=True)
+    ticket_prom_display = number_format(ticket_prom, decimal_pos=0, use_l10n=True, force_grouping=True)
+    growth_pct_display = number_format(Decimal(str(growth_pct or 0)), decimal_pos=0, use_l10n=True, force_grouping=True)
+
+    # ------- Catálogos para filtros -------
     try:
-        clientes = Cliente.objects.all().order_by('id')
+        unidades = list(UnidadNegocio.objects.all().order_by('nombre'))
+    except Exception:
+        unidades = []
+
+    try:
+        proyectos_qs = Proyecto.objects.select_related('unidad_negocio_principal').order_by('nombre')
+        if unidad_id_int:
+            proyectos_qs = proyectos_qs.filter(unidad_negocio_principal_id=unidad_id_int)
+        proyectos = list(proyectos_qs)
+    except Exception:
+        proyectos = []
+
+    try:
+        clientes_qs = Cliente.objects.select_related('proyecto_principal').order_by('razon_social')
+        if proyecto_id_int:
+            clientes_qs = clientes_qs.filter(proyecto_principal_id=proyecto_id_int)
+        elif unidad_id_int:
+            clientes_qs = clientes_qs.filter(proyecto_principal__unidad_negocio_principal_id=unidad_id_int)
+        clientes = list(clientes_qs)
     except Exception:
         clientes = []
+
+    estado_choices = [
+        ('', 'Todos los estados'),
+        ('En Negociación', 'En Negociación'),
+        ('Ganado', 'Ganado'),
+        ('Perdida', 'Perdida'),
+    ]
+
+    dashboard_payload = {
+        'seriesDays': series_days,
+        'seriesCounts': series_counts,
+        'monthsLabels': months_labels,
+        'monthsAmounts': months_amounts,
+        'topClientsLabels': top_clients_labels,
+        'topClientsValues': top_clients_values,
+        'unidadesLabels': unidades_labels,
+        'unidadesCounts': unidades_counts,
+        'stateLabels': estados_labels,
+        'stateCounts': estados_counts,
+        'stateAmounts': estados_amounts,
+    }
 
     ctx = {
         # filtros
         'desde': desde.isoformat(),
         'hasta': hasta.isoformat(),
         'cliente_id': cliente_id,
+        'unidad_id': unidad_id,
+        'proyecto_id': proyecto_id,
+        'estado_selected': estado_sel,
+        'unidades': unidades,
+        'proyectos': proyectos,
+        'estado_choices': estado_choices,
         'clientes': clientes,
 
         # KPIs
         'total_cotizaciones': total_cotizaciones,
         'total_items': total_items,
-        'subtotal': f"{subtotal:.2f}",
-        'igv': f"{igv:.2f}",
-        'total': f"{total:.2f}",
-        'ticket_prom': f"{ticket_prom:.2f}",
+        'subtotal': subtotal,
+        'igv': igv,
+        'total': total,
+        'ticket_prom': ticket_prom,
         'growth_pct': growth_pct,
+        'total_cotizaciones_display': total_cotizaciones_display,
+        'total_items_display': total_items_display,
+        'subtotal_display': subtotal_display,
+        'igv_display': igv_display,
+        'total_display': total_display,
+        'ticket_prom_display': ticket_prom_display,
+        'growth_pct_display': growth_pct_display,
 
         # series (se inyectan como JSON)
         'series_days': series_days,
@@ -1117,6 +1268,10 @@ def cotizaciones_dashboard(request):
         'top_clients_values': top_clients_values,
         'unidades_labels': unidades_labels,
         'unidades_counts': unidades_counts,
+        'states_labels': estados_labels,
+        'states_counts': estados_counts,
+        'states_amounts': estados_amounts,
+        'dashboard_data': json.dumps(dashboard_payload),
     }
     # El template está en ventas/templates/cotizaciones/cotizaciones_dashboard.html
     return render(request, 'cotizaciones/cotizaciones_dashboard.html', ctx)
@@ -1133,7 +1288,7 @@ def visualizar_pdf_cotizacion(request, pk):
     try:
         # Usar el mismo template HTML completo que generar_cotizacion
         plantilla_html = r"""
-          <!DOCTYPE html>
+        <!DOCTYPE html>
         <html lang="es">
         <head>
             <meta charset="UTF-8">
@@ -1176,8 +1331,8 @@ def visualizar_pdf_cotizacion(request, pk):
                 }
                 
                 .logo {
-                    height: 120px;
-                    max-width: 300px;
+                    height: 80px;
+                    max-width: 220px;
                     object-fit: contain;
                 }
                 
@@ -1349,24 +1504,36 @@ def visualizar_pdf_cotizacion(request, pk):
                 
                 .subtotal-row td, .igv-row td, .total-row td {
                     border-bottom: none !important;
-                    padding: 12px 8px !important;
-                    font-size: 11px !important;
+                    padding: 9px 8px !important;
+                    font-size: 10px !important;
                     font-weight: 700 !important;
                     text-align: center !important;
                 }
                 
                 .total-label-cell {
                     text-align: center !important;
-                    letter-spacing: 0.8px !important;
+                    letter-spacing: 0.5px !important;
                     text-transform: uppercase !important;
-                    font-size: 11px !important;
+                    font-size: 10px !important;
                 }
                 
                 .total-amount-cell {
-                    font-size: 12px !important;
-                    font-weight: 800 !important;
-                    letter-spacing: 0.5px !important;
+                    font-size: 10px !important;
+                    font-weight: 700 !important;
+                    letter-spacing: 0.2px !important;
                     text-align: center !important;
+                }
+                
+                .amount-wrapper {
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    gap: 3px;
+                    font-weight: 700;
+                }
+                
+                .amount-wrapper .currency {
+                    font-weight: 700;
                 }
                 
                 /* MODIFICACIÓN 2: Nueva estructura de layout */
@@ -1577,13 +1744,15 @@ def visualizar_pdf_cotizacion(request, pk):
                         margin: 10px 0;
                     }
                     
+                    .subtotal-row td,
+                    .igv-row td,
                     .total-row td {
-                        font-size: 9px !important;
-                        padding: 10px 4px !important;
+                        font-size: 8px !important;
+                        padding: 8px 3px !important;
                     }
                     
                     .total-amount-cell {
-                        font-size: 10px !important;
+                        font-size: 8px !important;
                     }
                     
                     /* Mantener dos columnas también en impresión */
@@ -1686,21 +1855,30 @@ def visualizar_pdf_cotizacion(request, pk):
                             <tr class="subtotal-row">
                                 <td colspan="5" class="total-label-cell">SUBTOTAL</td>
                                 <td class="total-amount-cell">
-                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ subtotal|floatformat:2 }}
+                                    <div class="amount-wrapper">
+                                        <span class="currency">{% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %}</span>
+                                        <span class="amount">{{ subtotal|floatformat:2 }}</span>
+                                    </div>
                                 </td>
                             </tr>
                             {% if cotizacion.incluye_igv %}
                             <tr class="igv-row">
                                 <td colspan="5" class="total-label-cell">IGV (18%)</td>
                                 <td class="total-amount-cell">
-                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ igv_monto|floatformat:2 }}
+                                    <div class="amount-wrapper">
+                                        <span class="currency">{% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %}</span>
+                                        <span class="amount">{{ igv_monto|floatformat:2 }}</span>
+                                    </div>
                                 </td>
                             </tr>
                             {% endif %}
                             <tr class="total-row">
                                 <td colspan="5" class="total-label-cell">TOTAL GENERAL</td>
                                 <td class="total-amount-cell">
-                                    {% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %} {{ total_con_igv|floatformat:2 }}
+                                    <div class="amount-wrapper">
+                                        <span class="currency">{% if cotizacion.moneda == 'Soles' %}S/{% else %}${% endif %}</span>
+                                        <span class="amount">{{ total_con_igv|floatformat:2 }}</span>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>
@@ -1753,7 +1931,7 @@ def visualizar_pdf_cotizacion(request, pk):
                 <!-- Nota de Tipo de Cambio -->
                 <div class="exchange-note">
                     {% if cotizacion.moneda == 'Dolares' %}
-                        Para la conversión a soles, se empleará el tipo de cambio de S/ {{ tipo_cambio_efectivo|floatformat:3 }} (BCR + margen) vigente en la fecha de la cotización.
+                        Para la conversión a soles, se empleará el tipo de cambio de S/ {{ tipo_cambio_efectivo|floatformat:3 }} vigente en la fecha de la cotización.
                     {% else %}
                         Precios expresados en {{ cotizacion.moneda|default:"Soles" }}.
                         {% if cotizacion.moneda == 'Soles' and tipo_cambio_efectivo %}
@@ -1770,7 +1948,7 @@ def visualizar_pdf_cotizacion(request, pk):
             </div>
         </body>
         </html>
-          """
+        """
           
         html_rendered = Template(plantilla_html).render(Context({
             'cotizacion': cotizacion,

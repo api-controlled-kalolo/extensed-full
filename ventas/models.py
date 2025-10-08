@@ -1,5 +1,6 @@
-from django.db import models
+from django.db import models, IntegrityError, transaction
 from django.core.validators import MinValueValidator, MaxValueValidator
+from django.db.models import Max
 from decimal import Decimal
 from datetime import datetime
 from services.tipo_cambio_service import obtener_tipo_cambio_actual
@@ -149,20 +150,39 @@ class Acciones_ActaServicioTecnico(models.Model):
 class UnidadNegocio(models.Model):
     codigo = models.CharField(blank=False, unique=True, null=False, max_length=20)
     nombre = models.CharField(blank=False, unique=True, null=False, max_length=50)
-    
+
     def __str__(self):
         # Elige el formato que quieras mostrar en el select:
         # Solo nombre:
         # return self.nombre
         # Código + nombre (mi favorito):
         return f"{self.codigo} — {self.nombre}"
-    
+
     def save(self, *args, **kwargs):
-        if not self.pk and not self.codigo:
-            super().save(*args, **kwargs)
-            self.codigo = f"UN-00{self.pk:01d}"
-            return super().save(update_fields=["codigo"])
-        return super().save(*args, **kwargs)
+        is_new = self.pk is None
+        assign_code = not self.codigo
+
+        for attempt in range(2):
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                break
+            except IntegrityError as exc:
+                if (
+                    attempt == 0
+                    and is_new
+                    and "ventas_unidadnegocio_pkey" in str(exc)
+                ):
+                    max_pk = type(self).objects.aggregate(max_pk=Max("pk"))[
+                        "max_pk"
+                    ] or 0
+                    self.pk = max_pk + 1
+                    continue
+                raise
+
+        if assign_code:
+            self.codigo = f"UN-{self.pk:03d}"
+            super().save(update_fields=["codigo"])
     
 # -- PROYECTO --
 class Proyecto(models.Model):
@@ -173,11 +193,24 @@ class Proyecto(models.Model):
     unidad_negocio_principal = models.ForeignKey(UnidadNegocio, on_delete=models.CASCADE, related_name='unidad_negocio')
     
     def save(self, *args, **kwargs):
-        if not self.pk and not self.codigo:
-            super().save(*args, **kwargs)
-            self.codigo = f"P-00{self.pk:01d}"
-            return super().save(update_fields=["codigo"])
-        return super().save(*args, **kwargs)
+        is_new = self.pk is None
+        assign_code = not self.codigo
+
+        for attempt in range(2):
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                break
+            except IntegrityError as exc:
+                if attempt == 0 and is_new and "ventas_proyecto_pkey" in str(exc):
+                    max_pk = type(self).objects.aggregate(max_pk=Max("pk"))["max_pk"] or 0
+                    self.pk = max_pk + 1
+                    continue
+                raise
+
+        if assign_code:
+            self.codigo = f"P-{self.pk:03d}"
+            super().save(update_fields=["codigo"])
 
     def __str__(self):
         return f"{self.nombre}"
@@ -186,8 +219,8 @@ class Proyecto(models.Model):
 class Cliente(models.Model):
     proyecto_principal = models.ForeignKey(Proyecto, on_delete=models.CASCADE, related_name='clientes')
     codigo = models.CharField(blank=False, unique=True, null=False, max_length=20)
-    ruc = models.CharField(blank=False, unique=True, null=False, max_length=20)
-    razon_social = models.CharField(blank=False, null=False, max_length=20)
+    ruc = models.CharField(blank=False, null=False, max_length=20)
+    razon_social = models.CharField(blank=False, null=False, max_length=50)
     direccion = models.CharField(blank=False, null=False, max_length=50)
     distrito = models.CharField(blank=False, null=False, max_length=20)
     provincia = models.CharField(blank=False, null=False, max_length=25)

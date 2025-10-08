@@ -1,0 +1,251 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERP · Unidades de Negocio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --primary-blue:#2563eb; --secondary-blue:#1d4ed8; --light-blue:#3b82f6; --accent-blue:#60a5fa;
+      --pure-white:#ffffff; --light-gray:#f8fafc; --medium-gray:#94a3b8; --dark-gray:#334155;
+      --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+
+      --gradient-primary:linear-gradient(135deg,#1e293b 0%,#0f172a 50%,#1e293b 100%);
+      --gradient-blue:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+
+      --shadow-soft:0 4px 20px rgba(0,0,0,.15);
+      --shadow-medium:0 12px 40px rgba(0,0,0,.28);
+      --shadow-strong:0 16px 48px rgba(0,0,0,.35);
+
+      --transition:all .35s ease;
+      --radius:20px;
+    }
+
+    * { box-sizing:border-box; }
+    html, body { height:100%; }
+    body {
+      margin:0;
+      font-family:Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      color:var(--pure-white);
+      background:var(--gradient-primary);
+      overflow-x:hidden;
+    }
+
+    .background-effects { position:fixed; inset:0; pointer-events:none; z-index:-1; }
+    .gradient-orb {
+      position:absolute; width:420px; height:420px; border-radius:50%;
+      filter:blur(55px); opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite;
+    }
+    .orb-1 { background:var(--gradient-blue); top:-110px; left:-70px; }
+    .orb-2 { background:radial-gradient(circle at 30% 30%, #60a5fa, #1d4ed8); bottom:-140px; right:-40px; animation-delay:2.5s; }
+    .grid-pattern {
+      position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+                       linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size:46px 46px;
+      mask-image:radial-gradient(ellipse at center, rgba(0,0,0,.75), transparent 70%);
+      animation:gridShift 28s linear infinite;
+    }
+
+    @keyframes float { 50% { transform:translateY(-18px) scale(1.02); } }
+    @keyframes gridShift { to { background-position:46px 46px; } }
+
+    .header {
+      position:sticky; top:0; z-index:30; padding:12px 20px;
+      background:rgba(10,14,26,.55);
+      backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--glass-border);
+    }
+    .header-content {
+      max-width:1100px; margin:0 auto;
+      display:flex; align-items:center; justify-content:space-between;
+      gap:16px;
+    }
+    .logo-section { display:flex; align-items:center; gap:12px; }
+    .logo-section img { height:48px; filter:brightness(1.15); transition:var(--transition); }
+    .logo-section img:hover { filter:brightness(1.4); }
+    .system-title { margin:0; font-size:1.05rem; font-weight:800; letter-spacing:.4px; }
+
+    .nav-icons { display:flex; align-items:center; gap:10px; margin-left:10px; }
+    .icon-btn {
+      display:grid; place-items:center; width:36px; height:36px; border-radius:12px;
+      background:var(--glass-bg); border:1px solid var(--glass-border);
+      color:var(--pure-white); text-decoration:none; transition:var(--transition);
+    }
+    .icon-btn:hover { transform:translateY(-1px); border-color:rgba(255,255,255,.22); box-shadow:var(--shadow-soft); }
+    .icon-btn:focus { outline:2px solid var(--primary-blue); outline-offset:3px; }
+    .icon-btn svg { width:20px; height:20px; }
+
+    .container { max-width:1100px; margin:28px auto; padding:0 20px; }
+    .page-head { display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:18px; margin-bottom:22px; }
+    .title { margin:0; font-size:1.7rem; font-weight:800; }
+    .desc { margin:6px 0 0; color:var(--light-gray); max-width:520px; }
+
+    .actions-bar { display:flex; flex-wrap:wrap; gap:12px; align-items:center; }
+    .btn {
+      border:none; cursor:pointer; font-weight:700; border-radius:12px; padding:.8rem 1.2rem;
+      transition:var(--transition); display:inline-flex; align-items:center; gap:8px;
+      text-decoration:none; color:inherit; background:var(--glass-bg); border:1px solid var(--glass-border);
+    }
+    .btn-primary { background:var(--gradient-blue); color:var(--pure-white); box-shadow:var(--shadow-soft); }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:var(--shadow-medium); }
+    .btn-ghost:hover { border-color:rgba(255,255,255,.22); }
+
+    .messages { margin-bottom:18px; }
+    .msg { border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border); }
+    .msg-success { background:rgba(21,128,61,.16); }
+    .msg-error { background:rgba(239,68,68,.18); }
+
+    .glass-card {
+      background:var(--glass-bg); backdrop-filter:blur(24px); border:1px solid var(--glass-border);
+      border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-soft);
+    }
+
+    table { width:100%; border-collapse:collapse; }
+    thead { background:rgba(255,255,255,.04); }
+    th, td { padding:14px 16px; text-align:left; }
+    th { font-size:.85rem; text-transform:uppercase; letter-spacing:.08em; color:var(--medium-gray); }
+    tbody tr { border-top:1px solid rgba(255,255,255,.06); }
+    tbody tr:hover { background:rgba(255,255,255,.04); }
+    td { color:var(--light-gray); font-size:.95rem; }
+    .tag {
+      display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px;
+      background:rgba(96,165,250,.14); color:var(--pure-white); font-size:.85rem;
+    }
+    .actions {
+      display:flex; flex-wrap:wrap; gap:8px;
+    }
+    .link-action {
+      display:inline-flex; align-items:center; gap:6px; padding:6px 12px; border-radius:10px;
+      background:rgba(255,255,255,.06); border:1px solid var(--glass-border);
+      color:var(--pure-white); text-decoration:none; font-weight:600; transition:var(--transition);
+    }
+    .link-action:hover { transform:translateY(-1px); border-color:rgba(255,255,255,.22); }
+    .link-delete { background:rgba(239,68,68,.12); border-color:rgba(239,68,68,.35); }
+    .link-delete:hover { background:rgba(239,68,68,.18); }
+
+    @media (max-width:768px) {
+      .header-content { flex-direction:column; align-items:flex-start; }
+      .page-head { flex-direction:column; align-items:flex-start; }
+      .actions { flex-direction:column; align-items:flex-start; }
+      table { display:block; overflow-x:auto; }
+    }
+
+    @keyframes fadeOut {
+      to { opacity:0; transform:translateY(-6px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="background-effects" aria-hidden="true">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <header class="header" role="banner">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logo" />
+        <h1 class="system-title">ERP · Unidades de Negocio</h1>
+        <div class="nav-icons" role="group" aria-label="Navegación rápida">
+          <a class="icon-btn" href="{% url 'ventas:modulo_ventas' %}" title="Ir al inicio" aria-label="Ir al inicio">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3 9.75L12 3L21 9.75V20.25C21 20.6642 20.6642 21 20.25 21H3.75C3.33579 21 3 20.6642 3 20.25V9.75Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              <path d="M9 21V12H15V21" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+          <a class="icon-btn" href="javascript:history.back()" title="Regresar" aria-label="Regresar">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </div>
+      </div>
+      <div class="actions-bar">
+        <a class="btn btn-primary" href="{% url 'ventas:unidadnegocio' %}">
+          <span>➕</span>
+          <span>Crear nueva UN</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" id="main">
+    <div class="page-head">
+      <div>
+        <h2 class="title">Gestión de Unidades de Negocio</h2>
+        <p class="desc">Administra las unidades registradas, revisa los proyectos vinculados y mantén la información al día.</p>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="msg {% if message.tags %}msg-{{ message.tags }}{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="glass-card" aria-label="Listado de Unidades de Negocio">
+      {% if unidades %}
+        <div style="overflow-x:auto;">
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Código</th>
+                <th scope="col">Nombre</th>
+                <th scope="col">Proyectos</th>
+                <th scope="col" style="width:220px;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for unidad in unidades %}
+                <tr>
+                  <td><span class="tag">{{ unidad.codigo }}</span></td>
+                  <td>{{ unidad.nombre }}</td>
+                  <td>
+                    {% if unidad.total_proyectos %}
+                      <span class="tag" style="background:rgba(34,197,94,.15);">{{ unidad.total_proyectos }} proyecto{{ unidad.total_proyectos|pluralize:"s" }}</span>
+                    {% else %}
+                      <span class="tag" style="background:rgba(148,163,184,.18); color:var(--medium-gray);">Sin proyectos</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div class="actions" role="group" aria-label="Acciones">
+                      <a class="link-action" href="{% url 'ventas:unidadnegocio_editar' unidad.pk %}">✏️ Editar</a>
+                      <a class="link-action link-delete" href="{% url 'ventas:unidadnegocio_eliminar' unidad.pk %}">🗑️ Eliminar</a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <p style="color:var(--medium-gray);">Todavía no registras Unidades de Negocio. Crea la primera para comenzar.</p>
+      {% endif %}
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const box = document.querySelector('.messages');
+      if (box) {
+        setTimeout(() => {
+          box.style.animation = 'fadeOut .6s forwards';
+        }, 3800);
+      }
+    });
+  </script>
+</body>
+</html>

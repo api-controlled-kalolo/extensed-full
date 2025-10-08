@@ -57,7 +57,7 @@
     .user-avatar{width:32px; height:32px; border-radius:10px; display:grid; place-items:center; background:var(--gradient-blue); font-weight:700}
 
     /* Contenedor */
-    .container{max-width:1100px; margin:28px auto; padding:0 20px; animation:fadeInUp .5s ease both}
+    .container{max-width:100%; margin:28px auto; padding:0 20px; animation:fadeInUp .5s ease both}
     .breadcrumb{color:var(--accent-blue); font-size:.9rem; margin-bottom:6px}
     .page-head{display:flex; align-items:end; justify-content:space-between; gap:16px; margin-bottom:18px}
     .title{margin:0; font-size:1.6rem; font-weight:800}
@@ -72,18 +72,36 @@
     .form-control, .form-select{
       width:100%; padding:.7rem .9rem; border-radius:12px; border:1px solid var(--glass-border);
       background:rgba(255,255,255,.06); color:var(--pure-white); transition:var(--transition);
+      color-scheme:dark; appearance:none;
+    }
+    select{
+      color:var(--pure-white);
+      color-scheme:dark;
     }
     .form-control::placeholder{color:var(--medium-gray)}
     .form-control:focus,.form-select:focus{outline:2px solid var(--primary-blue); outline-offset:2px; background:rgba(37,99,235,.08)}
+    .form-select option, select option{background:#0b1220; color:var(--pure-white)}
+    .form-select optgroup{background:#0b1220; color:var(--pure-white)}
     .btn{display:inline-grid; place-items:center; border-radius:12px; padding:.7rem 1rem; font-weight:700; cursor:pointer; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--pure-white); text-decoration:none; transition:var(--transition)}
     .btn:hover{transform:translateY(-1px)}
     .btn-primary{background:var(--gradient-blue); border-color:transparent}
     .btn-secondary{background:linear-gradient(135deg,#334155,#1f2937); border-color:transparent}
     .btn-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:var(--glass-bg);border:1px solid var(--glass-border)}
 
-    /* Tabla */
-    .table-wrap{overflow:auto}
-    table{width:100%; border-collapse:separate; border-spacing:0 10px}
+  /* Tabla */
+  .table-wrap{overflow:auto}
+  table{width:100%; border-collapse:separate; border-spacing:0 10px}
+  .card-table{padding:18px 0 0}
+  .card-table__header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 18px 12px}
+  .card-table .table-wrap{padding:0 18px 18px;width:100%;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .card-table table{min-width:1100px}
+  .card-table th,.card-table td{white-space:nowrap}
+  .card-table td{overflow:hidden;text-overflow:ellipsis}
+    @media (max-width:900px){
+      .card-table .table-wrap{padding:0 12px 12px}
+      .card-table__header{padding:0 12px 12px}
+      .card-table table{min-width:900px}
+    }
     thead th{font-size:.9rem; font-weight:800; color:var(--light-gray); text-align:left; padding:0 12px}
     tbody tr{background:rgba(255,255,255,.06); border:1px solid var(--glass-border); border-radius:12px}
     tbody td{padding:12px}
@@ -184,8 +202,8 @@
     </section>
 
     <!-- Tabla -->
-    <section class="card" aria-labelledby="tabla-title">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;">
+    <section class="card card-table" aria-labelledby="tabla-title">
+      <div class="card-table__header">
         <h3 id="tabla-title" style="margin:0; font-size:1.05rem; font-weight:800;">Resultados</h3>
         <a class="btn btn-secondary" href="{% url 'ventas:cotizacion_create' %}">+ Nueva cotización</a>
       </div>
@@ -345,7 +363,7 @@
   </main>
 
   <!-- Modal para Editar Cotización -->
-  <div id="modalDetalle" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.84); z-index:1000; backdrop-filter:blur(6px); display:flex; align-items:center; justify-content:center; padding:36px; box-sizing:border-box;">
+  <div id="modalDetalle" style="display:none; position:fixed; inset:0; width:100%; height:100%; background:rgba(0,0,0,0.84); z-index:1000; backdrop-filter:blur(6px); align-items:center; justify-content:center; padding:36px; box-sizing:border-box;">
     <div style="width:96%; max-width:96vw; max-height:96vh; background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:24px; padding:0; backdrop-filter:blur(25px); box-shadow: 0 20px 40px rgba(0,0,0,0.35); display:flex; flex-direction:column; overflow:hidden;">
       <div id="contenidoModal" style="flex:1; overflow-y:auto; color:var(--pure-white);">
         <div style="text-align:center; padding:40px;">
@@ -450,7 +468,7 @@
       const modal = document.getElementById('modalDetalle');
       const contenido = document.getElementById('contenidoModal');
       
-      modal.style.display = 'block';
+  modal.style.display = 'flex';
       
       // Mostrar loading
       contenido.innerHTML = `

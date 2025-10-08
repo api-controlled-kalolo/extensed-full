@@ -11,6 +11,17 @@ from .models import (
     UnidadNegocio,
     Proyecto
 )
+from ventas.utils.ubigeo import (
+    ensure_district_matches_province,
+    find_district_value,
+    find_province_value,
+    get_district_choices,
+    get_province_choices,
+    is_valid_district_value,
+    is_valid_province_value,
+    parse_district_value,
+    parse_province_value,
+)
 
 # -- Actas --
 class ActaServicioForm(forms.ModelForm):
@@ -245,6 +256,18 @@ DetallesCotizacionesInLineFormSet = inlineformset_factory(
 # -- Clientes -- 
 
 class ClienteForm(forms.ModelForm):
+    provincia = forms.ChoiceField(
+        label='Provincia',
+        choices=[],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
+    distrito = forms.ChoiceField(
+        label='Distrito',
+        choices=[],
+        required=True,
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
     proyecto_principal = forms.ModelChoiceField(
         queryset=Proyecto.objects.select_related('unidad_negocio_principal').order_by('nombre'),
         required=True,
@@ -254,13 +277,11 @@ class ClienteForm(forms.ModelForm):
 
     class Meta:
         model = Cliente
-        fields = ['proyecto_principal', 'ruc', 'razon_social', 'direccion', 'distrito', 'provincia']
+        fields = ['proyecto_principal', 'ruc', 'razon_social', 'direccion', 'provincia', 'distrito']
         widgets = {
             'ruc': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'RUC', 'pattern': r'\d{11}', 'title': 'RUC de 11 dígitos'}),
             'razon_social': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Razón social'}),
             'direccion': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Dirección'}),
-            'distrito': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Distrito'}),
-            'provincia': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Provincia'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -269,6 +290,77 @@ class ClienteForm(forms.ModelForm):
         # Texto visible en el dropdown: PROYECTO — [UN-CÓDIGO · UN-NOMBRE]
         self.fields['proyecto_principal'].label_from_instance = \
             (lambda obj: f"{obj.nombre} — [{obj.unidad_negocio_principal.codigo} · {obj.unidad_negocio_principal.nombre}]")
+
+        # Provincias (ordenadas por departamento y nombre)
+        province_choices = [('','Seleccione una provincia')] + get_province_choices()
+        self.fields['provincia'].choices = province_choices
+
+        province_field_name = self.add_prefix('provincia')
+        district_field_name = self.add_prefix('distrito')
+
+        # Determinar el value seleccionado para la provincia
+        province_value = None
+        if self.data and self.data.get(province_field_name):
+            province_candidate = self.data.get(province_field_name)
+            if is_valid_province_value(province_candidate):
+                province_value = province_candidate
+        else:
+            initial_province = self.initial.get('provincia') or getattr(self.instance, 'provincia', '')
+            province_value = find_province_value(initial_province)
+
+        if province_value:
+            self.fields['provincia'].initial = province_value
+
+        # Determinar distritos en función de la provincia
+        district_choices = []
+        district_value = None
+        if province_value:
+            district_choices = get_district_choices(province_value)
+            if self.data and self.data.get(district_field_name):
+                district_candidate = self.data.get(district_field_name)
+                if ensure_district_matches_province(province_value, district_candidate):
+                    district_value = district_candidate
+            else:
+                initial_district = self.initial.get('distrito') or getattr(self.instance, 'distrito', '')
+                district_value = find_district_value(province_value, initial_district)
+
+        self.fields['distrito'].choices = [('','Seleccione un distrito')] + district_choices
+        if district_value:
+            self.fields['distrito'].initial = district_value
+
+        # Guardamos el valor crudo para usarlo en clean_distrito
+        self._province_value_raw = province_value
+
+    def clean_provincia(self):
+        value = self.cleaned_data.get('provincia')
+        if not value:
+            raise forms.ValidationError('Seleccione una provincia válida.')
+        if not is_valid_province_value(value):
+            raise forms.ValidationError('La provincia seleccionada no es válida.')
+        # Guardamos para validar el distrito posteriormente
+        self._province_value_raw = value
+        _, province_name = parse_province_value(value)
+        return province_name
+
+    def clean_distrito(self):
+        value = self.cleaned_data.get('distrito')
+        if not value:
+            raise forms.ValidationError('Seleccione un distrito válido.')
+        if not is_valid_district_value(value):
+            raise forms.ValidationError('El distrito seleccionado no es válido.')
+
+        province_value = getattr(self, '_province_value_raw', None)
+        if not province_value:
+            # Intentamos recuperar desde los datos del formulario (en caso de error previo)
+            province_candidate = self.data.get(self.add_prefix('provincia'))
+            if province_candidate and is_valid_province_value(province_candidate):
+                province_value = province_candidate
+
+        if not province_value or not ensure_district_matches_province(province_value, value):
+            raise forms.ValidationError('El distrito no pertenece a la provincia seleccionada.')
+
+        _, _, district_name = parse_district_value(value)
+        return district_name
 
 
 class ContactoForm(forms.ModelForm):
@@ -325,11 +417,25 @@ class UnidadNegocioForm(forms.ModelForm):
         widgets = {
             'nombre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nombre de la UN'})
         }
+
+    def clean_nombre(self):
+        nombre = self.cleaned_data.get('nombre', '').strip()
+        if not nombre:
+            raise forms.ValidationError('Ingresa un nombre válido para la unidad de negocio.')
+
+        qs = UnidadNegocio.objects.filter(nombre__iexact=nombre)
+        if self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+
+        if qs.exists():
+            raise forms.ValidationError('Ya existe una Unidad de Negocio con este nombre.')
+
+        return nombre
         
 # -- Proyecto
 class ProyectoForm(forms.ModelForm):
     unidad_negocio_principal = forms.ModelChoiceField(
-        queryset=UnidadNegocio.objects.all(),
+        queryset=UnidadNegocio.objects.select_related().order_by('nombre'),
         required=True,
         label='Unidad de Negocio (UN)',
         widget=forms.Select(attrs={'class': 'form-select'})
@@ -346,3 +452,36 @@ class ProyectoForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         # Etiqueta para el "vacío"
         self.fields['unidad_negocio_principal'].empty_label = 'Seleccione una UN'
+        self.fields['unidad_negocio_principal'].label_from_instance = (
+            lambda obj: f"{obj.codigo} · {obj.nombre}"
+        )
+
+    def clean_nombre(self):
+        nombre = (self.cleaned_data.get('nombre') or '').strip()
+        if not nombre:
+            raise forms.ValidationError('Ingresa un nombre válido para el proyecto.')
+
+        unidad = self.cleaned_data.get('unidad_negocio_principal')
+        if not unidad and getattr(self.instance, 'unidad_negocio_principal_id', None):
+            unidad = self.instance.unidad_negocio_principal
+        if not unidad:
+            raw_unidad = self.data.get(self.add_prefix('unidad_negocio_principal'))
+            if raw_unidad:
+                try:
+                    unidad = UnidadNegocio.objects.get(pk=raw_unidad)
+                except UnidadNegocio.DoesNotExist:
+                    unidad = None
+
+        if unidad:
+            qs = Proyecto.objects.filter(
+                nombre__iexact=nombre,
+                unidad_negocio_principal=unidad
+            )
+            if self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                raise forms.ValidationError(
+                    'Ya existe un proyecto con este nombre en la unidad seleccionada.'
+                )
+
+        return nombre

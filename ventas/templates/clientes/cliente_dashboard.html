@@ -79,6 +79,22 @@
       box-shadow:var(--shadow-soft); transition:var(--transition)}
     .primary-button:hover{transform:translateY(-1px); box-shadow:var(--shadow-medium)}
 
+    .alerts{display:flex; flex-direction:column; gap:10px; margin:0 0 20px}
+    .alert{
+      position:relative; padding:14px 18px; border-radius:14px; border:1px solid rgba(96,165,250,.35);
+      background:linear-gradient(135deg, rgba(37,99,235,.18), rgba(37,99,235,.08));
+      color:var(--pure-white); box-shadow:var(--shadow-soft); backdrop-filter:blur(18px);
+      display:flex; align-items:center; gap:14px;
+    }
+    .alert.success{border-color:rgba(34,197,94,.4); background:linear-gradient(135deg, rgba(34,197,94,.22), rgba(16,185,129,.12))}
+    .alert.error{border-color:rgba(248,113,113,.4); background:linear-gradient(135deg, rgba(248,113,113,.18), rgba(239,68,68,.12))}
+    .alert svg{flex-shrink:0; width:22px; height:22px}
+    .alert-close{
+      position:absolute; top:10px; right:12px; border:none; background:transparent; color:inherit;
+      cursor:pointer; font-size:1rem; opacity:.7; transition:opacity .2s ease;
+    }
+    .alert-close:hover{opacity:1}
+
     .tiles{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:16px}
     .tile{position:relative; display:block; padding:20px; min-height:130px; border-radius:18px;
       background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(24px);
@@ -156,6 +172,30 @@
       <a class="primary-button" href="{% url 'ventas:clientecrear' %}">+ Nuevo cliente</a>
     </div>
 
+    {% if messages %}
+      <div class="alerts" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="alert {% if message.tags %}{{ message.tags }}{% endif %}">
+            {% if message.tags == 'success' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>
+              </svg>
+            {% elif message.tags == 'error' or message.tags == 'danger' %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="9"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+            {% else %}
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V6l-8-4-8 4v6c0 6 8 10 8 10z"/>
+              </svg>
+            {% endif %}
+            <span>{{ message }}</span>
+            <button type="button" class="alert-close" aria-label="Cerrar aviso" onclick="this.parentElement.remove()">×</button>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
     <section class="tiles" aria-label="Acciones del módulo de clientes">
       <a class="tile" href="{% url 'ventas:clientecrear' %}" aria-label="Crear cliente">
         <div class="icon" aria-hidden="true">
@@ -204,5 +244,19 @@
       </div> -->
     </section>
   </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.alert').forEach((alert) => {
+        setTimeout(() => {
+          alert.style.transition = 'opacity .4s ease';
+          alert.style.opacity = '0';
+        }, 4200);
+        setTimeout(() => {
+          alert?.remove();
+        }, 4700);
+      });
+    });
+  </script>
 </body>
 </html>

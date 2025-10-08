@@ -1,0 +1,114 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERP · Eliminar Proyecto</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --accent-red:#ef4444; --accent-blue:#60a5fa; --pure-white:#ffffff; --medium-gray:#94a3b8;
+      --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+      --gradient-primary:linear-gradient(135deg,#1e293b 0%,#0f172a 50%,#1e293b 100%);
+      --transition:all .35s ease; --radius:20px;
+      --shadow-soft:0 4px 18px rgba(0,0,0,.18);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden;
+    }
+
+    .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
+    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%; filter:blur(60px); opacity:.32; mix-blend-mode:screen; animation:float 16s ease-in-out infinite}
+    .orb-1{background:linear-gradient(135deg, rgba(239,68,68,.65), rgba(59,130,246,.4)); top:-100px; left:-70px}
+    .orb-2{background:linear-gradient(135deg, rgba(59,130,246,.5), rgba(13,148,136,.4)); bottom:-140px; right:-50px; animation-delay:3s}
+    .grid-pattern{position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px); background-size:46px 46px; mask-image:radial-gradient(ellipse at center, rgba(0,0,0,.78), transparent 72%); animation:gridShift 32s linear infinite}
+    @keyframes float{50%{transform:translateY(-20px) scale(1.03)}}
+    @keyframes gridShift{to{background-position:46px 46px}}
+
+    .header{position:sticky; top:0; z-index:30; padding:12px 20px; background:rgba(10,14,26,.55); backdrop-filter:blur(16px); border-bottom:1px solid var(--glass-border)}
+    .header-content{max-width:820px; margin:0 auto; display:flex; align-items:center; justify-content:space-between}
+    .logo-section{display:flex; align-items:center; gap:12px}
+    .logo-section img{height:46px; filter:brightness(1.2)}
+    .system-title{margin:0; font-size:1.02rem; font-weight:800; letter-spacing:.4px}
+
+    .container{max-width:820px; margin:34px auto; padding:0 20px}
+    .glass-card{background:var(--glass-bg); border:1px solid var(--glass-border); backdrop-filter:blur(26px); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow-soft)}
+    .title{margin:0; font-size:1.6rem; font-weight:800}
+    .desc{margin:10px 0 0; color:var(--medium-gray); line-height:1.6}
+    .warning{margin:16px 0; padding:14px 16px; border-radius:14px; background:rgba(239,68,68,.16); border:1px solid rgba(239,68,68,.35); color:rgba(254,226,226,.95)}
+
+    .stats{display:flex; gap:12px; margin:20px 0; flex-wrap:wrap}
+    .chip{padding:10px 14px; border-radius:14px; background:rgba(255,255,255,.08); border:1px solid var(--glass-border); font-weight:600}
+
+    .actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:22px}
+    .btn{border:none; cursor:pointer; font-weight:700; border-radius:12px; padding:.85rem 1.25rem; transition:var(--transition); display:inline-flex; align-items:center; gap:8px}
+    .btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c); color:var(--pure-white); box-shadow:0 10px 30px rgba(239,68,68,.35)}
+    .btn-danger:hover{transform:translateY(-1px); box-shadow:0 12px 36px rgba(239,68,68,.45)}
+    .btn-ghost{background:rgba(255,255,255,.08); color:var(--pure-white); border:1px solid var(--glass-border)}
+    .btn-ghost:hover{border-color:rgba(255,255,255,.24)}
+
+    @media (max-width:640px){
+      .stats{flex-direction:column}
+      .header-content{flex-direction:column; gap:14px}
+    }
+  </style>
+</head>
+<body>
+  <div class="background-effects" aria-hidden="true">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <header class="header" role="banner">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logo" />
+        <h1 class="system-title">ERP · Proyectos</h1>
+      </div>
+      <a href="{% url 'ventas:proyecto_list' %}" style="color:var(--pure-white); text-decoration:none; font-weight:600;">⟵ Volver al listado</a>
+    </div>
+  </header>
+
+  <main class="container" id="main">
+    <section class="glass-card" aria-label="Confirmación de eliminación de Proyecto">
+      <h2 class="title">¿Eliminar “{{ proyecto.nombre }}”?</h2>
+      <p class="desc">Esta acción eliminará el proyecto y no podrá deshacerse. Comprueba los datos antes de continuar.</p>
+
+      <div class="stats" role="group" aria-label="Resumen">
+        <span class="chip">Código: {{ proyecto.codigo }}</span>
+        <span class="chip">Unidad: {{ proyecto.unidad_negocio_principal.codigo }} · {{ proyecto.unidad_negocio_principal.nombre }}</span>
+        <span class="chip">Clientes asociados: {{ total_clientes }}</span>
+      </div>
+
+      {% if bloqueado %}
+        <div class="warning" role="alert">
+          <strong>Acción bloqueada.</strong> El proyecto tiene {{ total_clientes }} cliente{{ total_clientes|pluralize:"s" }} asociado{{ total_clientes|pluralize:"s" }}.
+          Reasigna o elimina primero esos registros para continuar.
+        </div>
+        <div class="actions">
+          <a href="{% url 'ventas:proyecto_list' %}" class="btn btn-ghost">Entendido</a>
+        </div>
+      {% else %}
+        <div class="warning" role="alert">
+          Esta eliminación es definitiva. Se perderán todas las referencias relacionadas con este proyecto.
+        </div>
+        <form method="post" class="actions">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger">🗑️ Eliminar definitivamente</button>
+          <a href="{% url 'ventas:proyecto_list' %}" class="btn btn-ghost">Cancelar</a>
+        </form>
+      {% endif %}
+    </section>
+  </main>
+</body>
+</html>

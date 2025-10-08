@@ -2,9 +2,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
+from django.utils import timezone
 
 from ventas.forms import ClienteForm
 from ventas.models import Cliente
+from ventas.utils.ubigeo import get_district_choices, is_valid_province_value
+from ventas.utils.excel import build_workbook, workbook_to_response
 
 
 def cliente_dashboard(request):
@@ -71,6 +74,18 @@ def buscar_clientes_json(request):
     return JsonResponse({'clientes': data})
 
 
+def distritos_por_provincia(request):
+    """Devuelve los distritos asociados a la provincia seleccionada."""
+
+    province_value = request.GET.get('provincia', '').strip()
+    if not is_valid_province_value(province_value):
+        return JsonResponse({'distritos': []})
+
+    district_choices = get_district_choices(province_value)
+    distritos = [{'value': value, 'label': label} for value, label in district_choices]
+    return JsonResponse({'distritos': distritos})
+
+
 def editar_cliente(request, cliente_id):
     """Vista para editar un cliente existente"""
     cliente = get_object_or_404(Cliente, id=cliente_id)
@@ -105,3 +120,39 @@ def eliminar_cliente(request, cliente_id):
         return redirect('ventas:listar_clientes')
     
     return render(request, 'clientes/confirmar_eliminar.html', {'cliente': cliente})
+
+
+def exportar_clientes_excel(request):
+    clientes = Cliente.objects.select_related(
+        'proyecto_principal__unidad_negocio_principal'
+    ).order_by('razon_social')
+
+    headers = [
+        'Código',
+        'RUC',
+        'Razón Social',
+        'Dirección',
+        'Distrito',
+        'Provincia',
+        'Proyecto',
+        'Unidad de Negocio',
+    ]
+
+    rows = []
+    for cliente in clientes:
+        proyecto = cliente.proyecto_principal
+        unidad = proyecto.unidad_negocio_principal if proyecto else None
+        rows.append([
+            cliente.codigo or '',
+            cliente.ruc,
+            cliente.razon_social,
+            cliente.direccion,
+            cliente.distrito,
+            cliente.provincia,
+            proyecto.nombre if proyecto else '',
+            unidad.nombre if unidad else '',
+        ])
+
+    workbook = build_workbook('Clientes', headers, rows)
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+    return workbook_to_response(workbook, f'clientes_{timestamp}.xlsx')

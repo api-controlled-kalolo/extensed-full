@@ -97,6 +97,9 @@
       transition:var(--transition); box-shadow:inset 0 0 0 rgba(0,0,0,0);
       appearance:none;
     }
+    .form-select option{
+      background:#0b1220; color:var(--pure-white);
+    }
     .form-control::placeholder{color:#cbd5e1}
     .form-control:focus, .form-select:focus{outline:none; border-color:rgba(96,165,250,.6); box-shadow:0 0 0 3px rgba(96,165,250,.25)}
 
@@ -343,6 +346,67 @@
       if(el.tagName === 'SELECT' && !el.classList.contains('form-select')) el.classList.add('form-select');
       if(el.tagName !== 'SELECT' && !el.classList.contains('form-control')) el.classList.add('form-control');
     });
+
+    const provinciaSelect = document.getElementById('{{ form.provincia.id_for_label }}');
+    const distritoSelect = document.getElementById('{{ form.distrito.id_for_label }}');
+    const distritosEndpoint = "{% url 'ventas:ubigeo_distritos' %}";
+
+    const renderDistrictOptions = (options, selectedValue = '') => {
+      if (!distritoSelect) return;
+      distritoSelect.innerHTML = '';
+
+      const placeholder = document.createElement('option');
+      placeholder.value = '';
+      placeholder.textContent = 'Seleccione un distrito';
+      distritoSelect.appendChild(placeholder);
+
+      options.forEach(({ value, label }) => {
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = label;
+        if (selectedValue && selectedValue === value) {
+          option.selected = true;
+        }
+        distritoSelect.appendChild(option);
+      });
+
+      distritoSelect.disabled = options.length === 0;
+    };
+
+    const fetchDistricts = async (provinceValue, selectedValue = '') => {
+      if (!provinceValue) {
+        renderDistrictOptions([], '');
+        return;
+      }
+
+      renderDistrictOptions([], '');
+      distritoSelect?.classList.add('loading');
+
+      try {
+        const response = await fetch(`${distritosEndpoint}?provincia=${encodeURIComponent(provinceValue)}`, {
+          headers: { 'Accept': 'application/json' }
+        });
+        if (!response.ok) throw new Error('Error al solicitar distritos');
+        const data = await response.json();
+        renderDistrictOptions(data?.distritos ?? [], selectedValue);
+      } catch (error) {
+        console.error('No se pudieron cargar los distritos:', error);
+        renderDistrictOptions([], '');
+      } finally {
+        distritoSelect?.classList.remove('loading');
+      }
+    };
+
+    provinciaSelect?.addEventListener('change', event => {
+      const { value } = event.target;
+      fetchDistricts(value, '');
+    });
+
+    if (provinciaSelect && provinciaSelect.value) {
+      fetchDistricts(provinciaSelect.value, distritoSelect?.value ?? '');
+    } else {
+      renderDistrictOptions([], '');
+    }
   </script>
 </body>
 </html>

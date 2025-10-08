@@ -55,13 +55,20 @@
     .card + .card{margin-top:16px}
 
     /* Filtros */
-    .filters{display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:10px}
+  .filters{display:grid; grid-template-columns:repeat(6, minmax(0,1fr)) auto; gap:10px}
     .form-control, .form-select{
       width:100%; padding:.7rem .9rem; border-radius:12px; border:1px solid var(--glass-border);
       background:rgba(255,255,255,.06); color:var(--pure-white); transition:var(--transition);
+      color-scheme:dark; appearance:none;
+    }
+    select{
+      color:var(--pure-white);
+      color-scheme:dark;
     }
     .form-control::placeholder{color:var(--medium-gray)}
     .form-control:focus,.form-select:focus{outline:2px solid var(--primary-blue); outline-offset:2px; background:rgba(37,99,235,.08)}
+    .form-select option, select option{background:#0b1220; color:var(--pure-white)}
+    .form-select optgroup{background:#0b1220; color:var(--pure-white)}
     .btn{display:inline-grid; place-items:center; border-radius:12px; padding:.7rem 1rem; font-weight:700; cursor:pointer; border:1px solid var(--glass-border); background:var(--glass-bg); color:var(--pure-white); text-decoration:none; transition:var(--transition)}
     .btn-primary{background:var(--gradient-blue); border-color:transparent}
 
@@ -77,8 +84,15 @@
     .grid-3{display:grid; grid-template-columns:2fr 2fr 1fr; gap:10px}
     canvas{width:100%; height:320px}
 
-    @media (max-width:1024px){ .kpis{grid-template-columns:repeat(3,1fr)} .grid-2,.grid-3{grid-template-columns:1fr} }
-    @media (max-width:640px){ .kpis{grid-template-columns:repeat(2,1fr)} }
+    @media (max-width:1024px){
+      .filters{grid-template-columns:repeat(3, minmax(0,1fr))}
+      .kpis{grid-template-columns:repeat(3,1fr)}
+      .grid-2,.grid-3{grid-template-columns:1fr}
+    }
+    @media (max-width:640px){
+      .filters{grid-template-columns:1fr}
+      .kpis{grid-template-columns:repeat(2,1fr)}
+    }
   </style>
 </head>
 <body>
@@ -118,12 +132,34 @@
       <form method="get" class="filters">
         <input class="form-control" type="date" name="desde" value="{{ desde }}"/>
         <input class="form-control" type="date" name="hasta" value="{{ hasta }}"/>
+
+        <select class="form-select" name="unidad">
+          <option value="">— Unidad de negocio —</option>
+          {% for un in unidades %}
+            <option value="{{ un.id }}" {% if unidad_id|add:'' == un.id|add:'' %}selected{% endif %}>{{ un }}</option>
+          {% endfor %}
+        </select>
+
+        <select class="form-select" name="proyecto">
+          <option value="">— Proyecto —</option>
+          {% for p in proyectos %}
+            <option value="{{ p.id }}" {% if proyecto_id|add:'' == p.id|add:'' %}selected{% endif %}>{{ p }}</option>
+          {% endfor %}
+        </select>
+
         <select class="form-select" name="cliente">
           <option value="">— Cliente —</option>
           {% for c in clientes %}
             <option value="{{ c.id }}" {% if cliente_id|add:'' == c.id|add:'' %}selected{% endif %}>{{ c }}</option>
           {% endfor %}
         </select>
+
+        <select class="form-select" name="estado">
+          {% for value, label in estado_choices %}
+            <option value="{{ value }}" {% if estado_selected == value %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+
         <button class="btn btn-primary" type="submit">Aplicar</button>
       </form>
     </section>
@@ -132,33 +168,33 @@
     <section class="kpis" style="margin-top:10px">
       <div class="kpi">
         <div class="label">Cotizaciones</div>
-        <div class="value">{{ total_cotizaciones }}</div>
+        <div class="value">{{ total_cotizaciones_display }}</div>
         <div class="hint">Periodo: {{ desde }} → {{ hasta }}</div>
       </div>
       <div class="kpi">
         <div class="label">Ítems</div>
-        <div class="value">{{ total_items }}</div>
+        <div class="value">{{ total_items_display }}</div>
         <div class="hint">Total líneas</div>
       </div>
       <div class="kpi">
         <div class="label">Subtotal</div>
-        <div class="value">S/ {{ subtotal }}</div>
+        <div class="value">S/ {{ subtotal_display }}</div>
         <div class="hint">Sin IGV</div>
       </div>
       <div class="kpi">
         <div class="label">IGV (18%)</div>
-        <div class="value">S/ {{ igv }}</div>
+        <div class="value">S/ {{ igv_display }}</div>
         <div class="hint">Calculado</div>
       </div>
       <div class="kpi">
         <div class="label">Total</div>
-        <div class="value">S/ {{ total }}</div>
+        <div class="value">S/ {{ total_display }}</div>
         <div class="hint">Con IGV</div>
       </div>
       <div class="kpi">
         <div class="label">Ticket Promedio</div>
-        <div class="value">S/ {{ ticket_prom }}</div>
-        <div class="hint">{% if growth_pct >= 0 %}▲{% else %}▼{% endif %} Crec.: {{ growth_pct }}%</div>
+        <div class="value">S/ {{ ticket_prom_display }}</div>
+        <div class="hint">{% if growth_pct >= 0 %}▲{% else %}▼{% endif %} Crec.: {{ growth_pct_display }}%</div>
       </div>
     </section>
 
@@ -183,34 +219,20 @@
         <h3 style="margin:0 0 8px">Top clientes por monto</h3>
         <canvas id="chartTopClientes"></canvas>
       </div>
-      <!-- <div class="card">
-        <h3 style="margin:0 0 8px">Notas</h3>
-        <p style="color:var(--medium-gray); margin:0">
-          * Los montos consideran la suma de <strong>cantidad × precio unitario</strong> de cada ítem (Subtotal).  
-          * Los filtros afectan KPIs y gráficos.  
-          * Si necesitas exportar a CSV/PDF, te agrego el botón con el mismo look.
-        </p>
-      </div> -->
+      <div class="card">
+        <h3 style="margin:0 0 8px">Estados de cotizaciones</h3>
+        <canvas id="chartEstado"></canvas>
+      </div>
     </section>
   </main>
 
   <!-- Datos (inyectados desde Django) -->
   <script>
-    const DATA = {
-      seriesDays: {{ series_days|safe }},
-      seriesCounts: {{ series_counts|safe }},
-      monthsLabels: {{ months_labels|safe }},
-      monthsAmounts: {{ months_amounts|safe }},
-      topClientsLabels: {{ top_clients_labels|safe }},
-      topClientsValues: {{ top_clients_values|safe }},
-      unidadesLabels: {{ unidades_labels|safe }},
-      unidadesCounts: {{ unidades_counts|safe }},
-    };
+    const DATA = JSON.parse('{{ dashboard_data|escapejs }}');
 
-    // Formateador moneda (S/)
-    const moneyFmt = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', maximumFractionDigits: 2 });
+    const moneyFmt = new Intl.NumberFormat('es-PE', { style: 'currency', currency: 'PEN', minimumFractionDigits: 0, maximumFractionDigits: 0 });
+    const intFmt = new Intl.NumberFormat('es-PE', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-    // Crea un gradiente vertical sutil
     function makeGradient(ctx, baseColor){
       const g = ctx.createLinearGradient(0, 0, 0, 320);
       g.addColorStop(0, baseColor.replace('1)', '.35)'));
@@ -219,11 +241,10 @@
     }
 
     window.addEventListener('DOMContentLoaded', () => {
-      // 1) Línea: cotizaciones por día
       {
         const el = document.getElementById('chartDay');
         const ctx = el.getContext('2d');
-        const base = 'rgba(96,165,250,1)'; // azul claro
+        const base = 'rgba(96,165,250,1)';
         new Chart(ctx, {
           type: 'line',
           data: {
@@ -241,23 +262,27 @@
           },
           options: {
             responsive: true,
+            interaction: { mode: 'index', intersect: false },
             scales: {
               x: { grid: { color: 'rgba(255,255,255,.06)' } },
-              y: { grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true, ticks: { precision:0 } }
+              y: {
+                grid: { color: 'rgba(255,255,255,.06)' },
+                beginAtZero: true,
+                ticks: { callback: (v) => intFmt.format(v) }
+              }
             },
             plugins: {
               legend: { display: false },
-              tooltip: { mode: 'index', intersect: false }
+              tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${intFmt.format(c.parsed.y)}` } }
             }
           }
         });
       }
 
-      // 2) Barras: monto por mes
       {
         const el = document.getElementById('chartMonth');
         const ctx = el.getContext('2d');
-        const base = 'rgba(37,99,235,1)'; // azul
+        const base = 'rgba(37,99,235,1)';
         new Chart(ctx, {
           type: 'bar',
           data: {
@@ -274,30 +299,29 @@
             responsive: true,
             scales: {
               x: { grid: { color: 'rgba(255,255,255,.06)' } },
-              y: { grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true,
-                ticks: { callback: (v)=> moneyFmt.format(v) }
+              y: {
+                grid: { color: 'rgba(255,255,255,.06)' },
+                beginAtZero: true,
+                ticks: { callback: (v) => moneyFmt.format(v) }
               }
             },
             plugins: {
               legend: { display: false },
-              tooltip: {
-                callbacks: { label: (c)=> `${c.dataset.label}: ${moneyFmt.format(c.parsed.y)}` }
-              }
+              tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${moneyFmt.format(c.parsed.y)}` } }
             }
           }
         });
       }
 
-      // 3) Doughnut: mix de unidades
       {
         const el = document.getElementById('chartUnidad');
         const ctx = el.getContext('2d');
         const palette = [
-          'rgba(96,165,250,1)',   // azul claro
-          'rgba(59,130,246,1)',   // azul
-          'rgba(37,99,235,1)',    // azul oscuro
-          'rgba(14,165,233,1)',   // celeste
-          'rgba(99,102,241,1)',   // indigo
+          'rgba(96,165,250,1)',
+          'rgba(59,130,246,1)',
+          'rgba(37,99,235,1)',
+          'rgba(14,165,233,1)',
+          'rgba(99,102,241,1)',
         ];
         new Chart(ctx, {
           type: 'doughnut',
@@ -309,18 +333,17 @@
             responsive: true,
             plugins: {
               legend: { position: 'bottom' },
-              tooltip: { callbacks: { label: (c)=> `${c.label}: ${c.formattedValue}` } }
+              tooltip: { callbacks: { label: (c) => `${c.label}: ${intFmt.format(c.parsed)}` } }
             },
             cutout: '60%'
           }
         });
       }
 
-      // 4) Barras horizontales: top clientes
       {
         const el = document.getElementById('chartTopClientes');
         const ctx = el.getContext('2d');
-        const base = 'rgba(14,165,233,1)'; // celeste
+        const base = 'rgba(14,165,233,1)';
         new Chart(ctx, {
           type: 'bar',
           data: {
@@ -337,21 +360,88 @@
             indexAxis: 'y',
             responsive: true,
             scales: {
-              x: { grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true,
-                ticks: { callback: (v)=> moneyFmt.format(v) }
+              x: {
+                grid: { color: 'rgba(255,255,255,.06)' },
+                beginAtZero: true,
+                ticks: { callback: (v) => moneyFmt.format(v) }
               },
-              y: { grid: { display:false } }
+              y: { grid: { display: false } }
             },
             plugins: {
               legend: { display: false },
-              tooltip: { callbacks: { label: (c)=> `${c.dataset.label}: ${moneyFmt.format(c.parsed.x)}` } }
+              tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${moneyFmt.format(c.parsed.x)}` } }
+            }
+          }
+        });
+      }
+
+      {
+        const el = document.getElementById('chartEstado');
+        const ctx = el.getContext('2d');
+        const baseBar = 'rgba(96,165,250,1)';
+        const lineColor = 'rgba(255,255,255,0.8)';
+        new Chart(ctx, {
+          data: {
+            labels: DATA.stateLabels,
+            datasets: [
+              {
+                type: 'bar',
+                label: 'Cotizaciones',
+                data: DATA.stateCounts,
+                backgroundColor: makeGradient(ctx, baseBar),
+                borderColor: 'rgba(37,99,235,1)',
+                borderWidth: 1.5,
+                yAxisID: 'yCounts'
+              },
+              {
+                type: 'line',
+                label: 'Montos',
+                data: DATA.stateAmounts,
+                borderColor: lineColor,
+                backgroundColor: 'transparent',
+                pointBackgroundColor: lineColor,
+                pointBorderColor: lineColor,
+                borderWidth: 2,
+                tension: .25,
+                yAxisID: 'yAmount'
+              }
+            ]
+          },
+          options: {
+            responsive: true,
+            interaction: { mode: 'index', intersect: false },
+            scales: {
+              x: { grid: { color: 'rgba(255,255,255,.06)' } },
+              yCounts: {
+                beginAtZero: true,
+                grid: { color: 'rgba(255,255,255,.06)' },
+                ticks: { callback: (v) => intFmt.format(v) }
+              },
+              yAmount: {
+                position: 'right',
+                beginAtZero: true,
+                grid: { drawOnChartArea: false },
+                ticks: { callback: (v) => moneyFmt.format(v) }
+              }
+            },
+            plugins: {
+              legend: { position: 'top' },
+              tooltip: {
+                callbacks: {
+                  label: (ctxTooltip) => {
+                    if (ctxTooltip.datasetIndex === 0) {
+                      return `${ctxTooltip.dataset.label}: ${intFmt.format(ctxTooltip.parsed.y)}`;
+                    }
+                    return `${ctxTooltip.dataset.label}: ${moneyFmt.format(ctxTooltip.parsed.y)}`;
+                  }
+                }
+              }
             }
           }
         });
       }
     });
 
-    // Respeta reduce motion
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
       document.querySelectorAll('*').forEach(el => {
         el.style.animationDuration = '0.01ms';

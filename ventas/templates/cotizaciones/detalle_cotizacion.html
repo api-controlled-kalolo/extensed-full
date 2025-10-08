@@ -53,9 +53,16 @@
     .form-control, .form-select, .form-textarea{
       width:100%; padding:.8rem; border-radius:12px; border:1px solid var(--glass-border);
       background:rgba(255,255,255,.06); color:var(--pure-white); transition:var(--transition); font-size:.95rem;
+      color-scheme:dark; appearance:none;
+    }
+    select{
+      color:var(--pure-white);
+      color-scheme:dark;
     }
     .form-control::placeholder{color:var(--medium-gray)}
     .form-control:focus, .form-select:focus, .form-textarea:focus{outline:2px solid var(--primary-blue); outline-offset:2px; border-color:var(--primary-blue)}
+    .form-select option, select option{background:#0b1220; color:var(--pure-white)}
+    .form-select optgroup{background:#0b1220; color:var(--pure-white)}
     .form-textarea{min-height:120px; resize:vertical}
     .help{font-size:.85rem; color:var(--accent-blue); margin-top:4px}
 

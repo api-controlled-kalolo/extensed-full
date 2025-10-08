@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERP · Eliminar Cliente</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --primary-blue:#2563eb; --secondary-blue:#1d4ed8; --accent-red:#f87171;
+      --pure-white:#ffffff; --light-gray:#e2e8f0; --medium-gray:#94a3b8;
+      --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+      --shadow-soft:0 18px 40px rgba(15,23,42,.45);
+      --transition:all .4s cubic-bezier(.4,0,.2,1);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:'Inter',sans-serif; color:var(--pure-white);
+      background:radial-gradient(circle at top,#111827 0%,#020617 60%,#010206 100%);
+      min-height:100vh; overflow-x:hidden;
+    }
+
+    .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
+    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%; filter:blur(50px);
+      opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
+    .orb-1{background:var(--primary-blue); top:-120px; left:-100px}
+    .orb-2{background:var(--accent-red); bottom:-140px; right:-90px; animation-delay:2s}
+    .grid-pattern{position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);
+      background-size:40px 40px; mask-image:radial-gradient(ellipse at center,rgba(0,0,0,.82),transparent 70%);
+      animation:gridShift 30s linear infinite;
+    }
+    @keyframes float{50%{transform:translateY(-20px) scale(1.03)}}
+    @keyframes gridShift{to{background-position:40px 40px}}
+
+    header.header{padding:16px 24px; display:flex; align-items:center; justify-content:space-between;
+      background:rgba(10,14,26,.66); backdrop-filter:blur(16px); border-bottom:1px solid var(--glass-border);
+      box-shadow:0 10px 30px rgba(2,6,23,.35);
+    }
+    .header-left{display:flex; gap:12px; align-items:center}
+    .header-left img{height:48px; filter:brightness(1.2)}
+    .header-left h1{margin:0; font-size:1.1rem; font-weight:800; letter-spacing:.35px}
+
+    main{max-width:620px; margin:60px auto; padding:0 20px}
+    .card{
+      background:var(--glass-bg); border:1px solid var(--glass-border); border-radius:24px;
+      padding:32px; backdrop-filter:blur(26px); box-shadow:var(--shadow-soft);
+      animation:fadeInUp .5s ease both;
+    }
+    .card h2{margin-top:0; font-size:1.5rem; font-weight:800}
+    .card p{color:var(--light-gray); line-height:1.5; margin:0 0 18px}
+    .tag{
+      display:inline-block; padding:.35rem .75rem; border-radius:999px; font-weight:700;
+      background:rgba(248,113,113,.16); border:1px solid rgba(248,113,113,.32); color:#fecaca;
+      margin-bottom:18px;
+    }
+    .details{
+      display:grid; gap:12px; margin:18px 0; padding:18px; border-radius:16px;
+      background:rgba(15,23,42,.6); border:1px solid rgba(148,163,184,.22);
+    }
+    .details strong{display:block; font-size:.88rem; color:var(--medium-gray); margin-bottom:2px}
+    .details span{font-size:1rem; color:var(--pure-white)}
+
+    .actions{display:flex; gap:14px; flex-wrap:wrap; margin-top:26px}
+    .btn{flex:1 1 160px; display:inline-flex; justify-content:center; align-items:center;
+      padding:.85rem 1.2rem; border-radius:14px; font-weight:700; text-decoration:none;
+      border:1px solid transparent; transition:var(--transition); cursor:pointer;
+    }
+    .btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c); border-color:transparent; color:var(--pure-white)}
+    .btn-danger:hover{transform:translateY(-1px); box-shadow:0 12px 26px rgba(185,28,28,.35)}
+    .btn-ghost{background:rgba(255,255,255,.06); border-color:var(--glass-border); color:var(--pure-white)}
+    .btn-ghost:hover{border-color:rgba(255,255,255,.22); transform:translateY(-1px)}
+
+    @keyframes fadeInUp{from{opacity:0; transform:translateY(18px)} to{opacity:1; transform:translateY(0)}}
+    @media (prefers-reduced-motion:reduce){
+      *,*::before,*::after{animation-duration:.01ms !important; transition-duration:.01ms !important;}
+    }
+  </style>
+</head>
+<body>
+  <div class="background-effects" aria-hidden="true">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <header class="header">
+    <div class="header-left">
+      <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logo" />
+      <h1>Confirmar eliminación de cliente</h1>
+    </div>
+    <a class="btn btn-ghost" href="{% url 'ventas:listar_clientes' %}" aria-label="Regresar al listado">← Volver</a>
+  </header>
+
+  <main>
+    <section class="card" aria-labelledby="confirm-title">
+      <span class="tag">Acción irreversible</span>
+      <h2 id="confirm-title">¿Eliminar definitivamente a este cliente?</h2>
+      <p>Esta acción eliminará el registro del cliente y cualquiera de sus contactos o cotizaciones asociadas que dependan de él. Revísalo antes de continuar.</p>
+
+      <div class="details" role="group" aria-label="Resumen del cliente">
+        <div>
+          <strong>Razón social</strong>
+          <span>{{ cliente.razon_social }}</span>
+        </div>
+        <div>
+          <strong>RUC</strong>
+          <span>{{ cliente.ruc }}</span>
+        </div>
+        <div>
+          <strong>Proyecto principal</strong>
+          <span>{{ cliente.proyecto_principal }}</span>
+        </div>
+        <div>
+          <strong>Ubicación</strong>
+          <span>{{ cliente.direccion }}, {{ cliente.distrito }} - {{ cliente.provincia }}</span>
+        </div>
+      </div>
+
+      <form method="post" class="actions">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger" aria-label="Confirmar eliminación del cliente">Eliminar cliente</button>
+        <a href="{% url 'ventas:listar_clientes' %}" class="btn btn-ghost" aria-label="Cancelar eliminación">Cancelar</a>
+      </form>
+    </section>
+  </main>
+</body>
+</html>

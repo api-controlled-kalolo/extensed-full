@@ -1,0 +1,168 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ERP · Editar Unidad de Negocio</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <style>
+    :root{
+      --primary-dark:#0a0e1a; --secondary-dark:#1a1f2e; --accent-dark:#2a3441;
+      --primary-blue:#2563eb; --secondary-blue:#1d4ed8; --light-blue:#3b82f6; --accent-blue:#60a5fa;
+      --pure-white:#ffffff; --light-gray:#f8fafc; --medium-gray:#94a3b8; --dark-gray:#334155;
+      --glass-bg:rgba(255,255,255,.08); --glass-border:rgba(255,255,255,.12);
+      --gradient-primary:linear-gradient(135deg,#1e293b 0%,#0f172a 50%,#1e293b 100%);
+      --gradient-blue:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);
+      --shadow-soft:0 4px 20px rgba(0,0,0,.15);
+      --shadow-medium:0 8px 32px rgba(0,0,0,.24);
+      --transition:all .35s ease;
+      --radius:20px;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:Inter, -apple-system, BlinkMacSystemFont,'Segoe UI',sans-serif;
+      color:var(--pure-white); background:var(--gradient-primary); overflow-x:hidden;
+    }
+
+    .background-effects{position:fixed; inset:0; pointer-events:none; z-index:-1}
+    .gradient-orb{position:absolute; width:420px; height:420px; border-radius:50%; filter:blur(55px); opacity:.35; mix-blend-mode:screen; animation:float 14s ease-in-out infinite}
+    .orb-1{background:var(--gradient-blue); top:-90px; left:-80px}
+    .orb-2{background:radial-gradient(circle at 40% 40%, #60a5fa, #1d4ed8); bottom:-140px; right:-60px; animation-delay:2.5s}
+    .grid-pattern{position:absolute; inset:0; background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px); background-size:44px 44px; mask-image:radial-gradient(ellipse at center, rgba(0,0,0,.78), transparent 72%); animation:gridShift 30s linear infinite}
+    @keyframes float{50%{transform:translateY(-18px) scale(1.02)}}
+    @keyframes gridShift{to{background-position:44px 44px}}
+
+    .header{position:sticky; top:0; z-index:30; padding:12px 20px; background:rgba(10,14,26,.55); backdrop-filter:blur(16px); border-bottom:1px solid var(--glass-border)}
+    .header-content{max-width:1100px; margin:0 auto; display:flex; align-items:center; justify-content:space-between}
+    .logo-section{display:flex; align-items:center; gap:12px}
+    .logo-section img{height:48px; filter:brightness(1.2); transition:var(--transition)}
+    .logo-section img:hover{filter:brightness(1.45)}
+    .system-title{margin:0; font-size:1.04rem; font-weight:800; letter-spacing:.4px}
+    .nav-icons{display:flex; align-items:center; gap:10px; margin-left:10px}
+    .icon-btn{display:grid; place-items:center; width:36px; height:36px; border-radius:12px; background:var(--glass-bg); border:1px solid var(--glass-border); color:var(--pure-white); text-decoration:none; transition:var(--transition)}
+    .icon-btn:hover{transform:translateY(-1px); border-color:rgba(255,255,255,.22); box-shadow:var(--shadow-soft)}
+    .icon-btn svg{width:20px; height:20px}
+
+    .container{max-width:1100px; margin:28px auto; padding:0 20px}
+    .breadcrumb{color:var(--accent-blue); font-size:.9rem; margin-bottom:8px}
+    .page-head{display:flex; flex-wrap:wrap; align-items:end; justify-content:space-between; gap:18px; margin-bottom:20px}
+    .title{margin:0; font-size:1.6rem; font-weight:800}
+    .desc{margin:6px 0 0; color:var(--light-gray); max-width:520px}
+
+    .glass-card{background:var(--glass-bg); backdrop-filter:blur(24px); border:1px solid var(--glass-border); border-radius:var(--radius); padding:26px; box-shadow:var(--shadow-soft)}
+    .form-grid{display:grid; grid-template-columns:1fr; gap:16px}
+    .field{display:flex; flex-direction:column; gap:8px}
+    .label{font-weight:700; font-size:.95rem}
+    .form-control{width:100%; padding:12px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.18); background:rgba(255,255,255,.08); color:var(--pure-white); transition:var(--transition)}
+    .form-control:focus{outline:none; border-color:rgba(96,165,250,.6); box-shadow:0 0 0 3px rgba(96,165,250,.25)}
+    .helper{color:var(--medium-gray); font-size:.9rem}
+
+    .messages{margin-bottom:16px}
+    .msg{border-radius:12px; padding:.8rem 1rem; border:1px solid var(--glass-border)}
+    .msg-error{background:rgba(239,68,68,.18)}
+
+    .actions{display:flex; align-items:center; gap:12px; margin-top:8px; flex-wrap:wrap}
+    .btn{border:none; cursor:pointer; font-weight:700; border-radius:12px; padding:.8rem 1.2rem; transition:var(--transition); display:inline-flex; align-items:center; gap:8px}
+    .btn-primary{background:var(--gradient-blue); color:var(--pure-white); box-shadow:var(--shadow-soft)}
+    .btn-primary:hover{transform:translateY(-1px); box-shadow:var(--shadow-medium)}
+    .btn-ghost{background:rgba(255,255,255,.08); color:var(--pure-white); border:1px solid var(--glass-border)}
+    .btn-ghost:hover{border-color:rgba(255,255,255,.22)}
+
+    @media (max-width:768px){
+      .header-content{flex-direction:column; align-items:flex-start}
+      .page-head{flex-direction:column; align-items:flex-start}
+    }
+  </style>
+</head>
+<body>
+  <div class="background-effects" aria-hidden="true">
+    <div class="gradient-orb orb-1"></div>
+    <div class="gradient-orb orb-2"></div>
+    <div class="grid-pattern"></div>
+  </div>
+
+  <header class="header" role="banner">
+    <div class="header-content">
+      <div class="logo-section">
+        <img src="https://i.ibb.co/wFRJS8cw/textoanhe-removebg-preview.png" alt="Logo" />
+        <h1 class="system-title">ERP · Unidades de Negocio</h1>
+        <div class="nav-icons" role="group" aria-label="Navegación rápida">
+          <a class="icon-btn" href="{% url 'ventas:unidadnegocio_list' %}" title="Volver al listado" aria-label="Volver al listado">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M15 19L8 12L15 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="container" id="main">
+    <div class="breadcrumb">Ventas / Unidades de Negocio / Editar</div>
+    <div class="page-head">
+      <div>
+        <h2 class="title">Editar “{{ unidad.nombre }}”</h2>
+        <p class="desc">Actualiza el nombre visible de la unidad sin perder la referencia del código {{ unidad.codigo }}.</p>
+      </div>
+    </div>
+
+    {% if messages %}
+      <div class="messages" role="status" aria-live="polite">
+        {% for message in messages %}
+          <div class="msg {% if message.tags %}msg-{{ message.tags }}{% endif %}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <section class="glass-card" aria-label="Formulario de edición de Unidad de Negocio">
+      <form method="post" novalidate id="unEditForm">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="msg msg-error" role="alert">{{ form.non_field_errors }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+          <div class="field">
+            <label for="{{ form.nombre.id_for_label }}" class="label">Nombre de la UN</label>
+            {{ form.nombre }}
+            <span class="helper">Código asignado automáticamente: {{ unidad.codigo }}</span>
+            {% if form.nombre.errors %}
+              <div class="msg msg-error" role="alert">{{ form.nombre.errors|join:" " }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary" id="submitBtn">💾 Guardar cambios</button>
+          <a href="{% url 'ventas:unidadnegocio_list' %}" class="btn btn-ghost">Cancelar</a>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const input = document.getElementById('{{ form.nombre.id_for_label }}');
+      if (input && !input.classList.contains('form-control')) {
+        input.classList.add('form-control');
+      }
+
+      const form = document.getElementById('unEditForm');
+      const btn = document.getElementById('submitBtn');
+      form?.addEventListener('submit', () => {
+        btn.disabled = true;
+        btn.style.opacity = .75;
+        btn.insertAdjacentHTML('beforeend', '<span aria-hidden="true" style="margin-left:8px">· · ·</span>');
+      });
+    });
+  </script>
+</body>
+</html>

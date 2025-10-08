@@ -2,9 +2,11 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.http import JsonResponse
 from django.db.models import Q
+from django.utils import timezone
 
 from ventas.forms import ContactoForm
 from ventas.models import Contacto
+from ventas.utils.excel import build_workbook, workbook_to_response
 
 
 def contacto_dashboard(request):
@@ -110,3 +112,43 @@ def eliminar_contacto(request, contacto_id):
         return redirect('ventas:listar_contactos')
     
     return render(request, 'contacto/confirmar_eliminar_contacto.html', {'contacto': contacto})
+
+
+def exportar_contactos_excel(request):
+    contactos = Contacto.objects.select_related(
+        'cliente_principal__proyecto_principal__unidad_negocio_principal'
+    ).order_by('apellidos', 'nombres')
+
+    headers = [
+        'Apellidos',
+        'Nombres',
+        'Cargo',
+        'Correo',
+        'Celular',
+        'Sede',
+        'Cliente',
+        'Proyecto',
+        'Unidad de Negocio',
+    ]
+
+    rows = []
+    for contacto in contactos:
+        cliente = contacto.cliente_principal
+        proyecto = cliente.proyecto_principal if cliente else None
+        unidad = proyecto.unidad_negocio_principal if proyecto else None
+
+        rows.append([
+            contacto.apellidos,
+            contacto.nombres,
+            contacto.cargo,
+            contacto.correo,
+            contacto.Celular,
+            contacto.Sede,
+            cliente.razon_social if cliente else '',
+            proyecto.nombre if proyecto else '',
+            unidad.nombre if unidad else '',
+        ])
+
+    workbook = build_workbook('Contactos', headers, rows)
+    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+    return workbook_to_response(workbook, f'contactos_{timestamp}.xlsx')
